@@ -1,4 +1,4 @@
-﻿using MySql.Data.MySqlClient;
+﻿using Npgsql;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -17,7 +17,7 @@ namespace TollTracker.model
         private Dictionary<string, int> roadTypeMap; //mapa typů silnic, kde klíč je název typu a hodnota je id typu
         private enum ValidType { validNonPresent, nonValid, validPresent }; //výčtový typ pro návratové hodnoty metod pro kontrolu typů { validní typ pro nový prvek; nevalidní typ; validní typ pro prvek, který už je v databázi} 
 
-        public Model() : base()
+        public Model()
         {
             if (openConnection())
             {
@@ -80,7 +80,8 @@ namespace TollTracker.model
                     break;
             }
 
-            if (insertGateX) {
+            if (insertGateX)
+            {
                 if (!insertGate(gateId, gateType, roadNumber))
                 {
                     return false;
@@ -197,11 +198,11 @@ namespace TollTracker.model
             try
             {
                 string query = "INSERT INTO road (number, type_id) VALUES('" + roadNumber + "', '" + roadTypeMap[type] + "')";
-                MySqlCommand cmd = new MySqlCommand(query, connection);
-                cmd.ExecuteNonQuery();
+                NpgsqlCommand command = new NpgsqlCommand(query, connection);
+                command.ExecuteNonQuery();
                 return true;
             }
-            catch (MySqlException ex)
+            catch (Exception ex)
             {
                 Console.WriteLine(ex.Message);
                 return false;
@@ -219,11 +220,11 @@ namespace TollTracker.model
             try
             {
                 string query = "INSERT INTO car (SPZ, type_id) VALUES('" + SPZ + "', '" + carTypeMap[type] + "')";
-                MySqlCommand cmd = new MySqlCommand(query, connection);
-                cmd.ExecuteNonQuery();
+                NpgsqlCommand command = new NpgsqlCommand(query, connection);
+                command.ExecuteNonQuery();
                 return true;
             }
-            catch (MySqlException ex)
+            catch (Exception ex)
             {
                 Console.WriteLine(ex.Message);
                 return false;
@@ -242,11 +243,11 @@ namespace TollTracker.model
             try
             {
                 string query = "INSERT INTO toll_gate (id, type_id, road_number) VALUES('" + gateId + "', '" + gateTypeMap[type] + "', '" + road_number + "')";
-                MySqlCommand cmd = new MySqlCommand(query, connection);
-                cmd.ExecuteNonQuery();
+                NpgsqlCommand command = new NpgsqlCommand(query, connection);
+                command.ExecuteNonQuery();
                 return true;
             }
-            catch (MySqlException ex)
+            catch (Exception ex)
             {
                 Console.WriteLine(ex.Message);
                 return false;
@@ -265,12 +266,11 @@ namespace TollTracker.model
         {
             try
             {
-                string query = "INSERT INTO GPS_gate (longitude, latitude, accuracy, road_number) VALUES('" + longitude + "', '" + latitude + "', '" + accuracy + "', '" + road_number + "')";
-                MySqlCommand cmd = new MySqlCommand(query, connection);
-                cmd.ExecuteNonQuery();
-                return cmd.LastInsertedId;
+                string query = "INSERT INTO GPS_gate (longitude, latitude, accuracy, road_number) VALUES('" + longitude + "', '" + latitude + "', '" + accuracy + "', '" + road_number + "') RETURNING id";
+                NpgsqlCommand command = new NpgsqlCommand(query, connection);
+                return command.ExecuteNonQuery();
             }
-            catch (MySqlException ex)
+            catch (Exception ex)
             {
                 Console.WriteLine(ex.Message);
                 return -1;
@@ -299,11 +299,11 @@ namespace TollTracker.model
             try
             {
                 string query = "INSERT INTO toll (when, price, car_SPZ, toll_gate_id, GPS_gate_id) VALUES('" + when + "', '" + price + "', '" + SPZ + "', '" + gatesValue + "')";
-                MySqlCommand cmd = new MySqlCommand(query, connection);
-                cmd.ExecuteNonQuery();
+                NpgsqlCommand command = new NpgsqlCommand(query, connection);
+                command.ExecuteNonQuery();
                 return true;
             }
-            catch (MySqlException ex)
+            catch (Exception ex)
             {
                 Console.WriteLine(ex.Message);
                 return false;
@@ -382,22 +382,20 @@ namespace TollTracker.model
         private ValidType isTypeValid(string table, string idColumnName, string idColumnValue, int typeId)
         {
             string query = "SELECT type_id FROM " + table + " WHERE " + idColumnName + " = " + idColumnValue + " LIMIT 1";
-            MySqlCommand cmd = new MySqlCommand(query, connection);
-            MySqlDataReader dataReader = cmd.ExecuteReader();
-            if (dataReader.Read())
+            NpgsqlCommand command = new NpgsqlCommand(query, connection);
+            NpgsqlDataReader dr = command.ExecuteReader();
+
+            if (dr.Read())
             {
-                int type_id = Convert.ToInt32(dataReader["type_id"]);
+                int type_id = Convert.ToInt32(dr["type_id"]);
                 if (typeId == type_id)
                 {
-                    dataReader.Close();
                     return ValidType.validPresent;
                 }
                 else {
-                    dataReader.Close();
                     return ValidType.nonValid;
                 }
             }
-            dataReader.Close();
             return ValidType.validNonPresent;
         }
 
@@ -412,14 +410,13 @@ namespace TollTracker.model
 
             string query = "SELECT id, name FROM " + tableName;
 
-            MySqlCommand cmd = new MySqlCommand(query, connection);
-            MySqlDataReader dataReader = cmd.ExecuteReader();
-            while (dataReader.Read())
+            NpgsqlCommand command = new NpgsqlCommand(query, connection);
+            NpgsqlDataReader dr = command.ExecuteReader();
+            while (dr.Read())
             {
-                int id = Convert.ToInt32(dataReader["id"]);
-                typeMap.Add(dataReader["name"] + "", id);
+                int id = Convert.ToInt32(dr["id"]);
+                typeMap.Add(dr["name"] + "", id);
             }
-            dataReader.Close();
 
             return typeMap;
         }

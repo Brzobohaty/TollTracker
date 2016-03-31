@@ -3,9 +3,10 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using MySql.Data.MySqlClient;
 using System.Windows.Forms;
+using Npgsql;
 
+//https://codeabout.wordpress.com/2012/03/08/working-with-postgres-database-and-c-by-using-npgsql-and-reflection/
 namespace TollTracker.model
 {
     /// <summary>
@@ -13,26 +14,12 @@ namespace TollTracker.model
     /// </summary>
     abstract class DBConnector
     {
-        protected MySqlConnection connection;
-        private string server = "localhost";
-        private string database = "TollTracker";
-        private string uid = "root";
-        private string password = "poklop";
-
-        public DBConnector() {
-            initialize();
-        }
-
-        /// <summary>
-        /// Inicializuje připojení k databázi
-        /// </summary>
-        private void initialize()
-        {
-            string connectionString;
-            connectionString = "SERVER=" + server + ";" + "DATABASE=" +
-            database + ";" + "UID=" + uid + ";" + "PASSWORD=" + password + ";";
-            connection = new MySqlConnection(connectionString);
-        }
+        private const string server = "localhost";
+        private const string port = "5432";
+        private const string database = "TollTracker";
+        private const string uid = "postgres";
+        private const string password = "poklop";
+        protected NpgsqlConnection connection = new NpgsqlConnection("Server=" + server + ";Port=" + port + ";User Id=" + uid + ";Password=" + password + ";Database=" + database + ";");
 
         /// <summary>
         /// Otevře připojení k databázi
@@ -45,25 +32,9 @@ namespace TollTracker.model
                 connection.Open();
                 return true;
             }
-            catch (MySqlException ex)
+            catch (Exception ex)
             {
-                //When handling errors, you can your application's response based 
-                //on the error number.
-                //The two most common error numbers when connecting are as follows:
-                //0: Cannot connect to server.
-                //1045: Invalid user name and/or password.
-                switch (ex.Number)
-                {
-                    case 0:
-                        MessageBox.Show("Cannot connect to server.  Contact administrator");
-                        break;
-                    case 1045:
-                        MessageBox.Show("Invalid username/password, please try again");
-                        break;
-                    default:
-                        MessageBox.Show(ex.Message);
-                        break;
-                }
+                MessageBox.Show(ex.Message);
                 return false;
             }
         }
@@ -79,7 +50,7 @@ namespace TollTracker.model
                 connection.Close();
                 return true;
             }
-            catch (MySqlException ex)
+            catch (Exception ex)
             {
                 MessageBox.Show(ex.Message);
                 return false;
