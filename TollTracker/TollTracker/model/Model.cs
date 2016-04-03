@@ -1,6 +1,7 @@
 ﻿using Npgsql;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -29,6 +30,101 @@ namespace TollTracker.model
         }
 
         /// <summary>
+        /// Přečte daný soubor a nahraje jeho obsah do databáze
+        /// </summary>
+        /// <param name="pathToFile">cesta k souboru</param>
+        /// <param name="errorCallback">funkce, která bude zavolána v případě chyby při čtení souboru a parsování souboru (jako parametr má funkce chybovou hlášku)</param>
+        /// <returns>false pokud nastala při čtení a parsování fatalní chyba, která zamezila načtení všech záznamů</returns>
+        public bool readFile(string pathToFile, Action<string> errorCallback)
+        {
+            string fileContent;
+            try
+            {
+                fileContent = readFile(pathToFile).Trim();
+            }
+            catch (Exception ex)
+            {
+                errorCallback("Došlo k chybě při čtení souboru: " + ex.Message);
+                return false;
+            }
+
+            if (fileContent.Substring(0, 5) == "<?xml")
+            {
+                if (!parseXML(fileContent, errorCallback))
+                {
+                    return false;
+                }
+            }
+            else if (fileContent.Substring(0, 1) == "{" || fileContent.Substring(0, 1) == "[")
+            {
+                if (!parseJSON(fileContent, errorCallback))
+                {
+                    return false;
+                }
+            }
+            else {
+                errorCallback("Obsah souboru není v čitelném formátu (XML nebo JSON)");
+                return false;
+            }
+            return true;
+        }
+
+        /****************************************************************PRIVATE*******************************************************/
+
+        /// <summary>
+        /// Rozparsování JSON dat a uložení do databáze
+        /// </summary>
+        /// <param name="content">JSON text</param>
+        /// <param name="errorCallback">funkce, která bude zavolána v případě chyby při parsování (jako parametr má funkce chybovou hlášku)</param>
+        /// <returns>false pokud nastala při parsování fatalní chyba, která zamezila načtení všech záznamů</returns>
+        private bool parseJSON(string content, Action<string> errorCallback)
+        {
+            JSONParser parser = new JSONParser();
+            if (!parser.loadData(content, errorCallback))
+            {
+                return false;
+            }
+            while (parser.next())
+            {
+                insertTollWithGPS(parser.when, parser.price, parser.roadNumber, parser.roadType, parser.carType, parser.SPZ, parser.GPSLongitude, parser.GPSLatitude, parser.GPSAccuracy);
+            }
+            return true;
+        }
+
+        /// <summary>
+        /// Rozparsování XML dat a uložení do databáze
+        /// </summary>
+        /// <param name="content">XML text</param>
+        /// <param name="errorCallback">funkce, která bude zavolána v případě chyby při parsování (jako parametr má funkce chybovou hlášku)</param>
+        /// <returns>false pokud nastala při parsování fatalní chyba, která zamezila načtení všech záznamů</returns>
+        private bool parseXML(string content, Action<string> errorCallback)
+        {
+            XMLParser parser = new XMLParser();
+            if (!parser.loadData(content, errorCallback)) {
+                return false;
+            }
+            while(parser.next()){
+                insertTollWithTollGate(parser.when, parser.price, parser.roadNumber, parser.roadType, parser.carType, parser.SPZ, parser.gateId, parser.gateType);
+            }
+            return true;
+        }
+
+        /// <summary>
+        /// Prečte soubor vrátí jeho obsah
+        /// </summary>
+        /// <param name="pathToFile">cesta k souboru</param>
+        /// <returns>obsah soboru</returns>
+        private string readFile(string pathToFile)
+        {
+            string readContents;
+            using (StreamReader streamReader = new StreamReader(pathToFile, Encoding.UTF8))
+            {
+                readContents = streamReader.ReadToEnd();
+            }
+            return readContents;
+        }
+
+        /// <summary>
         /// Vloží do databáze jeden záznam o mýtném s mýtnou branou
         /// Nejdříve je potřeba otevřít připojení a pak zase zavřít.
         /// </summary>
@@ -41,7 +137,7 @@ namespace TollTracker.model
         /// <param name="gateId">id mýtné brány</param>
         /// <param name="gateType">typ mýtné brány (small, medium, large)</param>
         /// <returns>true pokud je záznam validní</returns>
-        public bool insertTollWithTollGate(DateTime when, double price, string roadNumber, string roadType, string carType, string SPZ, int gateId, string gateType)
+        private bool insertTollWithTollGate(DateTime when, double price, string roadNumber, string roadType, string carType, string SPZ, int gateId, string gateType)
         {
             var insertGateX = false;
             var insertRoadX = false;
@@ -126,7 +222,7 @@ namespace TollTracker.model
         /// <param name="GPSLatitude">zeměpisná šířka GPS souřadnic, kde bylo mýto zaznamenáno</param>
         /// <param name="GPSAccuracy">přesnost GPS souřadnic, kde bylo mýto zaznamenáno</param>
         /// <returns>true pokud je záznam validní</returns>
-        public bool insertTollWithGPS(DateTime when, double price, string roadNumber, string roadType, string carType, string SPZ, double GPSLongitude, double GPSLatitude, int GPSAccuracy)
+        private bool insertTollWithGPS(DateTime when, double price, string roadNumber, string roadType, string carType, string SPZ, double GPSLongitude, double GPSLatitude, int GPSAccuracy)
         {
             var insertRoadX = false;
             var insertCarX = false;
@@ -184,8 +280,6 @@ namespace TollTracker.model
                 return false;
             }
         }
-
-        /****************************************************************PRIVATE*******************************************************/
 
         /// <summary>
         /// Vloží do databáze silnici s danými parametry
@@ -348,7 +442,8 @@ namespace TollTracker.model
         /// <returns>ValidType</returns>
         private ValidType isCarTypeValid(string SPZ, string type)
         {
-            if (!carTypeSet.Contains(type)) {
+            if (!carTypeSet.Contains(type))
+            {
                 return ValidType.nonValid;
             }
             return isTypeValid("car", "SPZ", SPZ, type);
@@ -371,7 +466,7 @@ namespace TollTracker.model
 
             if (dr.Read())
             {
-                string typeFromDb = dr["type"]+"";
+                string typeFromDb = dr["type"] + "";
                 dr.Close();
                 if (typeFromDb == type)
                 {
