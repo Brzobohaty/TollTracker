@@ -12,18 +12,18 @@ namespace TollTracker.model
     /// </summary>
     class Model : DBConnector
     {
-        private Dictionary<string, int> gateTypeMap; //mapa typů bran, kde klíč je název typu a hodnota je id typu
-        private Dictionary<string, int> carTypeMap; //mapa typů aut, kde klíč je název typu a hodnota je id typu
-        private Dictionary<string, int> roadTypeMap; //mapa typů silnic, kde klíč je název typu a hodnota je id typu
+        private HashSet<string> gateTypeSet; //množina typů bran
+        private HashSet<string> carTypeSet; //množina typů aut
+        private HashSet<string> roadTypeSet; //množina typů silnic
         private enum ValidType { validNonPresent, nonValid, validPresent }; //výčtový typ pro návratové hodnoty metod pro kontrolu typů { validní typ pro nový prvek; nevalidní typ; validní typ pro prvek, který už je v databázi} 
 
         public Model()
         {
             if (openConnection())
             {
-                gateTypeMap = getTypeMap("gate_type");
-                carTypeMap = getTypeMap("car_type");
-                roadTypeMap = getTypeMap("road_type");
+                gateTypeSet = getTypeMap("gate_type");
+                carTypeSet = getTypeMap("car_type");
+                roadTypeSet = getTypeMap("road_type");
                 closeConnection();
             }
         }
@@ -197,7 +197,7 @@ namespace TollTracker.model
         {
             try
             {
-                string query = "INSERT INTO road (number, type_id) VALUES('" + roadNumber + "', '" + roadTypeMap[type] + "')";
+                string query = "INSERT INTO road (number, type) VALUES('" + roadNumber + "', '" + type + "')";
                 NpgsqlCommand command = new NpgsqlCommand(query, connection);
                 command.ExecuteNonQuery();
                 return true;
@@ -219,7 +219,7 @@ namespace TollTracker.model
         {
             try
             {
-                string query = "INSERT INTO car (SPZ, type_id) VALUES('" + SPZ + "', '" + carTypeMap[type] + "')";
+                string query = "INSERT INTO car (SPZ, type) VALUES('" + SPZ + "', '" + type + "')";
                 NpgsqlCommand command = new NpgsqlCommand(query, connection);
                 command.ExecuteNonQuery();
                 return true;
@@ -242,7 +242,7 @@ namespace TollTracker.model
         {
             try
             {
-                string query = "INSERT INTO toll_gate (id, type_id, road_number) VALUES('" + gateId + "', '" + gateTypeMap[type] + "', '" + road_number + "')";
+                string query = "INSERT INTO toll_gate (id, type, road_number) VALUES('" + gateId + "', '" + type + "', '" + road_number + "')";
                 NpgsqlCommand command = new NpgsqlCommand(query, connection);
                 command.ExecuteNonQuery();
                 return true;
@@ -318,16 +318,11 @@ namespace TollTracker.model
         /// <returns>true pokud taková brána neexistuje nebo pokud existuje a má stejný typ (a pokud existuje takový typ)</returns>
         private ValidType isGateTypeValid(int tollGateId, string type)
         {
-            int typeId;
-            try
-            {
-                typeId = gateTypeMap[type];
-            }
-            catch (KeyNotFoundException)
+            if (!gateTypeSet.Contains(type))
             {
                 return ValidType.nonValid;
             }
-            return isTypeValid("toll_gate", "id", tollGateId.ToString(), typeId);
+            return isTypeValid("toll_gate", "id", tollGateId.ToString(), type);
         }
 
         /// <summary>
@@ -338,16 +333,11 @@ namespace TollTracker.model
         /// <returns>true pokud taková silnice neexistuje nebo pokud existuje a má stejný typ (a pokud existuje takový typ)</returns>
         private ValidType isRoadTypeValid(string roadNumber, string type)
         {
-            int typeId;
-            try
-            {
-                typeId = roadTypeMap[type];
-            }
-            catch (KeyNotFoundException)
+            if (!roadTypeSet.Contains(type))
             {
                 return ValidType.nonValid;
             }
-            return isTypeValid("road", "number", roadNumber, typeId);
+            return isTypeValid("road", "number", roadNumber, type);
         }
 
         /// <summary>
@@ -358,16 +348,10 @@ namespace TollTracker.model
         /// <returns>ValidType</returns>
         private ValidType isCarTypeValid(string SPZ, string type)
         {
-            int typeId;
-            try
-            {
-                typeId = carTypeMap[type];
-            }
-            catch (KeyNotFoundException)
-            {
+            if (!carTypeSet.Contains(type)) {
                 return ValidType.nonValid;
             }
-            return isTypeValid("car", "SPZ", SPZ, typeId);
+            return isTypeValid("car", "SPZ", SPZ, type);
         }
 
         /// <summary>
@@ -377,18 +361,19 @@ namespace TollTracker.model
         /// <param name="table">tabulka prvku</param>
         /// <param name="idColumnName">název primárního klíče v tabulce prvku</param>
         /// <param name="idColumnValue">hodnota primárního klíče v tabulce prvku</param>
-        /// <param name="typeId">id typu</param>
+        /// <param name="type">jméno typu</param>
         /// <returns>ValidType</returns>
-        private ValidType isTypeValid(string table, string idColumnName, string idColumnValue, int typeId)
+        private ValidType isTypeValid(string table, string idColumnName, string idColumnValue, string type)
         {
-            string query = "SELECT type_id FROM " + table + " WHERE " + idColumnName + " = " + idColumnValue + " LIMIT 1";
+            string query = "SELECT type FROM " + table + " WHERE " + idColumnName + " = " + idColumnValue + " LIMIT 1";
             NpgsqlCommand command = new NpgsqlCommand(query, connection);
             NpgsqlDataReader dr = command.ExecuteReader();
 
             if (dr.Read())
             {
-                int type_id = Convert.ToInt32(dr["type_id"]);
-                if (typeId == type_id)
+                string typeFromDb = dr["type"]+"";
+                dr.Close();
+                if (typeFromDb == type)
                 {
                     return ValidType.validPresent;
                 }
@@ -400,24 +385,23 @@ namespace TollTracker.model
         }
 
         /// <summary>
-        /// Vytvoří mapu z tabulky typu
+        /// Vytvoří množinu z tabulky typu
         /// </summary>
         /// <param name="tableName">jméno tabulky typu</param>
-        /// <returns>mapu, kde klíč je název typu a hodnota je id typu</returns>
-        private Dictionary<string, int> getTypeMap(string tableName)
+        /// <returns>množina názvů typů</returns>
+        private HashSet<string> getTypeMap(string tableName)
         {
-            Dictionary<string, int> typeMap = new Dictionary<string, int>();
+            HashSet<string> typeMap = new HashSet<string>();
 
-            string query = "SELECT id, name FROM " + tableName;
+            string query = "SELECT name FROM " + tableName;
 
             NpgsqlCommand command = new NpgsqlCommand(query, connection);
             NpgsqlDataReader dr = command.ExecuteReader();
             while (dr.Read())
             {
-                int id = Convert.ToInt32(dr["id"]);
-                typeMap.Add(dr["name"] + "", id);
+                typeMap.Add(dr["name"] + "");
             }
-
+            dr.Close();
             return typeMap;
         }
     }
