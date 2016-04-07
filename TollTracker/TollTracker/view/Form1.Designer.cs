@@ -30,29 +30,31 @@
         {
             this.reportProperties = new System.Windows.Forms.TabControl();
             this.vehicelTrackingPage = new System.Windows.Forms.TabPage();
-            this.vehiceTollPage = new System.Windows.Forms.TabPage();
-            this.importButton = new System.Windows.Forms.Button();
-            this.executeButton = new System.Windows.Forms.Button();
-            this.resultsGridView = new System.Windows.Forms.DataGridView();
-            this.exportButton = new System.Windows.Forms.Button();
-            this.tollSummaryPage = new System.Windows.Forms.TabPage();
-            this.gatereportPage = new System.Windows.Forms.TabPage();
             this.vehiclePicker = new System.Windows.Forms.ListBox();
-            this.vehiclePicker2 = new System.Windows.Forms.ListBox();
-            this.tollSummaryInfoLabel = new System.Windows.Forms.Label();
-            this.gatePicker = new System.Windows.Forms.ListBox();
+            this.vehiceTollPage = new System.Windows.Forms.TabPage();
+            this.monthCalendar1 = new System.Windows.Forms.MonthCalendar();
             this.groupBox1 = new System.Windows.Forms.GroupBox();
             this.monthlyRadioButton = new System.Windows.Forms.RadioButton();
             this.weeklyRadioButton = new System.Windows.Forms.RadioButton();
             this.dailyRadioButton = new System.Windows.Forms.RadioButton();
-            this.monthCalendar1 = new System.Windows.Forms.MonthCalendar();
+            this.vehiclePicker2 = new System.Windows.Forms.ListBox();
+            this.tollSummaryPage = new System.Windows.Forms.TabPage();
+            this.tollSummaryInfoLabel = new System.Windows.Forms.Label();
+            this.gatereportPage = new System.Windows.Forms.TabPage();
+            this.gatePicker = new System.Windows.Forms.ListBox();
+            this.importButton = new System.Windows.Forms.Button();
+            this.executeButton = new System.Windows.Forms.Button();
+            this.resultsGridView = new System.Windows.Forms.DataGridView();
+            this.exportButton = new System.Windows.Forms.Button();
+            this.openFileDialog = new System.Windows.Forms.OpenFileDialog();
+            this.saveFileDialog = new System.Windows.Forms.SaveFileDialog();
             this.reportProperties.SuspendLayout();
             this.vehicelTrackingPage.SuspendLayout();
             this.vehiceTollPage.SuspendLayout();
-            ((System.ComponentModel.ISupportInitialize)(this.resultsGridView)).BeginInit();
+            this.groupBox1.SuspendLayout();
             this.tollSummaryPage.SuspendLayout();
             this.gatereportPage.SuspendLayout();
-            this.groupBox1.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.resultsGridView)).BeginInit();
             this.SuspendLayout();
             // 
             // reportProperties
@@ -73,11 +75,20 @@
             this.vehicelTrackingPage.Location = new System.Drawing.Point(4, 22);
             this.vehicelTrackingPage.Name = "vehicelTrackingPage";
             this.vehicelTrackingPage.Padding = new System.Windows.Forms.Padding(3);
-            this.vehicelTrackingPage.Size = new System.Drawing.Size(312, 360);
+            this.vehicelTrackingPage.Size = new System.Drawing.Size(312, 275);
             this.vehicelTrackingPage.TabIndex = 0;
             this.vehicelTrackingPage.Text = "Vehicle Tracking";
             this.vehicelTrackingPage.UseVisualStyleBackColor = true;
             this.vehicelTrackingPage.Click += new System.EventHandler(this.tabPage1_Click);
+            // 
+            // vehiclePicker
+            // 
+            this.vehiclePicker.FormattingEnabled = true;
+            this.vehiclePicker.Location = new System.Drawing.Point(3, 3);
+            this.vehiclePicker.Name = "vehiclePicker";
+            this.vehiclePicker.Size = new System.Drawing.Size(306, 95);
+            this.vehiclePicker.TabIndex = 0;
+            this.vehiclePicker.SelectedIndexChanged += new System.EventHandler(this.vehicleChooser_SelectedIndexChanged);
             // 
             // vehiceTollPage
             // 
@@ -92,97 +103,11 @@
             this.vehiceTollPage.Text = "Vehicle Toll";
             this.vehiceTollPage.UseVisualStyleBackColor = true;
             // 
-            // importButton
+            // monthCalendar1
             // 
-            this.importButton.Location = new System.Drawing.Point(58, 319);
-            this.importButton.Name = "importButton";
-            this.importButton.Size = new System.Drawing.Size(75, 23);
-            this.importButton.TabIndex = 6;
-            this.importButton.Text = "Import Data";
-            this.importButton.UseVisualStyleBackColor = true;
-            // 
-            // executeButton
-            // 
-            this.executeButton.Location = new System.Drawing.Point(139, 319);
-            this.executeButton.Name = "executeButton";
-            this.executeButton.Size = new System.Drawing.Size(75, 23);
-            this.executeButton.TabIndex = 7;
-            this.executeButton.Text = "Execute Report";
-            this.executeButton.UseVisualStyleBackColor = true;
-            // 
-            // resultsGridView
-            // 
-            this.resultsGridView.AllowUserToAddRows = false;
-            this.resultsGridView.AllowUserToDeleteRows = false;
-            this.resultsGridView.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
-            this.resultsGridView.Location = new System.Drawing.Point(341, 12);
-            this.resultsGridView.Name = "resultsGridView";
-            this.resultsGridView.ReadOnly = true;
-            this.resultsGridView.Size = new System.Drawing.Size(313, 330);
-            this.resultsGridView.TabIndex = 9;
-            // 
-            // exportButton
-            // 
-            this.exportButton.Location = new System.Drawing.Point(220, 319);
-            this.exportButton.Name = "exportButton";
-            this.exportButton.Size = new System.Drawing.Size(75, 23);
-            this.exportButton.TabIndex = 9;
-            this.exportButton.Text = "Export Data";
-            this.exportButton.UseVisualStyleBackColor = true;
-            // 
-            // tollSummaryPage
-            // 
-            this.tollSummaryPage.Controls.Add(this.tollSummaryInfoLabel);
-            this.tollSummaryPage.Location = new System.Drawing.Point(4, 22);
-            this.tollSummaryPage.Name = "tollSummaryPage";
-            this.tollSummaryPage.Size = new System.Drawing.Size(312, 360);
-            this.tollSummaryPage.TabIndex = 2;
-            this.tollSummaryPage.Text = "Tolls Summary";
-            this.tollSummaryPage.UseVisualStyleBackColor = true;
-            // 
-            // gatereportPage
-            // 
-            this.gatereportPage.Controls.Add(this.gatePicker);
-            this.gatereportPage.Location = new System.Drawing.Point(4, 22);
-            this.gatereportPage.Name = "gatereportPage";
-            this.gatereportPage.Size = new System.Drawing.Size(312, 360);
-            this.gatereportPage.TabIndex = 3;
-            this.gatereportPage.Text = "Gate Report";
-            this.gatereportPage.UseVisualStyleBackColor = true;
-            // 
-            // vehiclePicker
-            // 
-            this.vehiclePicker.FormattingEnabled = true;
-            this.vehiclePicker.Location = new System.Drawing.Point(3, 3);
-            this.vehiclePicker.Name = "vehiclePicker";
-            this.vehiclePicker.Size = new System.Drawing.Size(306, 95);
-            this.vehiclePicker.TabIndex = 0;
-            this.vehiclePicker.SelectedIndexChanged += new System.EventHandler(this.vehicleChooser_SelectedIndexChanged);
-            // 
-            // vehiclePicker2
-            // 
-            this.vehiclePicker2.FormattingEnabled = true;
-            this.vehiclePicker2.Location = new System.Drawing.Point(0, 0);
-            this.vehiclePicker2.Name = "vehiclePicker2";
-            this.vehiclePicker2.Size = new System.Drawing.Size(306, 95);
-            this.vehiclePicker2.TabIndex = 1;
-            // 
-            // tollSummaryInfoLabel
-            // 
-            this.tollSummaryInfoLabel.AutoSize = true;
-            this.tollSummaryInfoLabel.Location = new System.Drawing.Point(6, 10);
-            this.tollSummaryInfoLabel.Name = "tollSummaryInfoLabel";
-            this.tollSummaryInfoLabel.Size = new System.Drawing.Size(96, 13);
-            this.tollSummaryInfoLabel.TabIndex = 0;
-            this.tollSummaryInfoLabel.Text = "Just press Execute";
-            // 
-            // gatePicker
-            // 
-            this.gatePicker.FormattingEnabled = true;
-            this.gatePicker.Location = new System.Drawing.Point(0, 0);
-            this.gatePicker.Name = "gatePicker";
-            this.gatePicker.Size = new System.Drawing.Size(309, 95);
-            this.gatePicker.TabIndex = 0;
+            this.monthCalendar1.Location = new System.Drawing.Point(156, 107);
+            this.monthCalendar1.Name = "monthCalendar1";
+            this.monthCalendar1.TabIndex = 7;
             // 
             // groupBox1
             // 
@@ -213,13 +138,13 @@
             this.weeklyRadioButton.Name = "weeklyRadioButton";
             this.weeklyRadioButton.Size = new System.Drawing.Size(96, 17);
             this.weeklyRadioButton.TabIndex = 6;
-            this.weeklyRadioButton.TabStop = true;
             this.weeklyRadioButton.Text = "Weekly Report";
             this.weeklyRadioButton.UseVisualStyleBackColor = true;
             // 
             // dailyRadioButton
             // 
             this.dailyRadioButton.AutoSize = true;
+            this.dailyRadioButton.Checked = true;
             this.dailyRadioButton.Location = new System.Drawing.Point(6, 19);
             this.dailyRadioButton.Name = "dailyRadioButton";
             this.dailyRadioButton.Size = new System.Drawing.Size(83, 17);
@@ -228,11 +153,95 @@
             this.dailyRadioButton.Text = "Daily Report";
             this.dailyRadioButton.UseVisualStyleBackColor = true;
             // 
-            // monthCalendar1
+            // vehiclePicker2
             // 
-            this.monthCalendar1.Location = new System.Drawing.Point(156, 107);
-            this.monthCalendar1.Name = "monthCalendar1";
-            this.monthCalendar1.TabIndex = 7;
+            this.vehiclePicker2.FormattingEnabled = true;
+            this.vehiclePicker2.Location = new System.Drawing.Point(0, 0);
+            this.vehiclePicker2.Name = "vehiclePicker2";
+            this.vehiclePicker2.Size = new System.Drawing.Size(306, 95);
+            this.vehiclePicker2.TabIndex = 1;
+            // 
+            // tollSummaryPage
+            // 
+            this.tollSummaryPage.Controls.Add(this.tollSummaryInfoLabel);
+            this.tollSummaryPage.Location = new System.Drawing.Point(4, 22);
+            this.tollSummaryPage.Name = "tollSummaryPage";
+            this.tollSummaryPage.Size = new System.Drawing.Size(312, 275);
+            this.tollSummaryPage.TabIndex = 2;
+            this.tollSummaryPage.Text = "Tolls Summary";
+            this.tollSummaryPage.UseVisualStyleBackColor = true;
+            // 
+            // tollSummaryInfoLabel
+            // 
+            this.tollSummaryInfoLabel.AutoSize = true;
+            this.tollSummaryInfoLabel.Location = new System.Drawing.Point(6, 10);
+            this.tollSummaryInfoLabel.Name = "tollSummaryInfoLabel";
+            this.tollSummaryInfoLabel.Size = new System.Drawing.Size(96, 13);
+            this.tollSummaryInfoLabel.TabIndex = 0;
+            this.tollSummaryInfoLabel.Text = "Just press Execute";
+            // 
+            // gatereportPage
+            // 
+            this.gatereportPage.Controls.Add(this.gatePicker);
+            this.gatereportPage.Location = new System.Drawing.Point(4, 22);
+            this.gatereportPage.Name = "gatereportPage";
+            this.gatereportPage.Size = new System.Drawing.Size(312, 275);
+            this.gatereportPage.TabIndex = 3;
+            this.gatereportPage.Text = "Gate Report";
+            this.gatereportPage.UseVisualStyleBackColor = true;
+            // 
+            // gatePicker
+            // 
+            this.gatePicker.FormattingEnabled = true;
+            this.gatePicker.Location = new System.Drawing.Point(0, 0);
+            this.gatePicker.Name = "gatePicker";
+            this.gatePicker.Size = new System.Drawing.Size(309, 95);
+            this.gatePicker.TabIndex = 0;
+            // 
+            // importButton
+            // 
+            this.importButton.Location = new System.Drawing.Point(58, 319);
+            this.importButton.Name = "importButton";
+            this.importButton.Size = new System.Drawing.Size(75, 23);
+            this.importButton.TabIndex = 6;
+            this.importButton.Text = "Import Data";
+            this.importButton.UseVisualStyleBackColor = true;
+            this.importButton.Click += new System.EventHandler(this.importButton_Click);
+            // 
+            // executeButton
+            // 
+            this.executeButton.Location = new System.Drawing.Point(139, 319);
+            this.executeButton.Name = "executeButton";
+            this.executeButton.Size = new System.Drawing.Size(75, 23);
+            this.executeButton.TabIndex = 7;
+            this.executeButton.Text = "Execute Report";
+            this.executeButton.UseVisualStyleBackColor = true;
+            this.executeButton.Click += new System.EventHandler(this.executeButton_Click);
+            // 
+            // resultsGridView
+            // 
+            this.resultsGridView.AllowUserToAddRows = false;
+            this.resultsGridView.AllowUserToDeleteRows = false;
+            this.resultsGridView.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
+            this.resultsGridView.Location = new System.Drawing.Point(341, 12);
+            this.resultsGridView.Name = "resultsGridView";
+            this.resultsGridView.ReadOnly = true;
+            this.resultsGridView.Size = new System.Drawing.Size(313, 330);
+            this.resultsGridView.TabIndex = 9;
+            // 
+            // exportButton
+            // 
+            this.exportButton.Location = new System.Drawing.Point(220, 319);
+            this.exportButton.Name = "exportButton";
+            this.exportButton.Size = new System.Drawing.Size(75, 23);
+            this.exportButton.TabIndex = 9;
+            this.exportButton.Text = "Export Data";
+            this.exportButton.UseVisualStyleBackColor = true;
+            this.exportButton.Click += new System.EventHandler(this.exportButton_Click);
+            // 
+            // openFileDialog
+            // 
+            this.openFileDialog.FileName = "openFileDialog";
             // 
             // Form1
             // 
@@ -244,18 +253,18 @@
             this.Controls.Add(this.executeButton);
             this.Controls.Add(this.importButton);
             this.Controls.Add(this.reportProperties);
-            this.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
+            this.Margin = new System.Windows.Forms.Padding(2);
             this.Name = "Form1";
             this.Text = "TollTracker";
             this.reportProperties.ResumeLayout(false);
             this.vehicelTrackingPage.ResumeLayout(false);
             this.vehiceTollPage.ResumeLayout(false);
-            ((System.ComponentModel.ISupportInitialize)(this.resultsGridView)).EndInit();
+            this.groupBox1.ResumeLayout(false);
+            this.groupBox1.PerformLayout();
             this.tollSummaryPage.ResumeLayout(false);
             this.tollSummaryPage.PerformLayout();
             this.gatereportPage.ResumeLayout(false);
-            this.groupBox1.ResumeLayout(false);
-            this.groupBox1.PerformLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.resultsGridView)).EndInit();
             this.ResumeLayout(false);
 
         }
@@ -280,6 +289,8 @@
         private System.Windows.Forms.RadioButton dailyRadioButton;
         private System.Windows.Forms.Label tollSummaryInfoLabel;
         private System.Windows.Forms.ListBox gatePicker;
+        private System.Windows.Forms.OpenFileDialog openFileDialog;
+        private System.Windows.Forms.SaveFileDialog saveFileDialog;
     }
 }
 
