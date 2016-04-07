@@ -69,6 +69,48 @@ namespace TollTracker.model
             return true;
         }
 
+        /// <summary>
+        /// Získá z databáze informace o zvolené bráně záznam o mýtném s mýtnou branou
+        /// </summary>
+        /// <param name="gateId">id mýtné brány</param>
+        /// <returns>průjezdy aut zvolenou mýtnou branou</returns>
+        internal bool getGateReport(int gateId)
+        {
+
+        }
+
+        /// <summary>
+        /// Získá z databáze informace o sumě vybraných peněz pro každý druh vozidla
+        /// </summary>
+        /// <returns>obnosy vybraných peněz</returns>
+        internal bool getTollsSummary()
+        {
+
+        }
+
+        /// <summary>
+        /// Získá z databáze informace o penězích zaplacených daným vozidlem za zvolenou dobu
+        /// pro každý druh silnice
+        /// </summary>
+        /// /// <param name="spz">spz vozidla</param>
+        /// /// <param name="from">termín od kdy</param>
+        /// /// <param name="to">termín do kdy</param>
+        /// <returns>obnosy vybraných peněz</returns>
+        internal bool getVehicleToll(String spz, DateTime from, DateTime to)
+        {
+
+        }
+
+        /// <summary>
+        /// Získá z databáze informace o pohybu vozidla
+        /// </summary>
+        /// <param name="spz">id mýtné brány</param>
+        /// <returns>seznam pozic a časů, kde se vozidlo pohybovalo</returns>
+        internal bool getVehicleTrackingData(String spz)
+        {
+
+        }
+
         /****************************************************************PRIVATE*******************************************************/
 
         /// <summary>
