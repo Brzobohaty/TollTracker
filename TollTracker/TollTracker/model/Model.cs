@@ -20,6 +20,7 @@ namespace TollTracker.model
         private enum ValidType { validNonPresent, nonValid, validPresent }; //výčtový typ pro návratové hodnoty metod pro kontrolu typů { validní typ pro nový prvek; nevalidní typ; validní typ pro prvek, který už je v databázi} 
         private Action<int, string> oneTollErrorCallback; //funkce, která bude zavolána v případě chyby při parsování jednoho záznamu mýta (jako parametry má funkce pořadí mýta a chybovou hlášku)
         private String errMes; //poslední chybová hláška ke které došlo při práci s databází
+        private Action<int> showNumberOfProcessedTolls; //funkce, která bude zavolána v případě zpracování jednoho mýta (jako parametr má funkce počet zpracovaných mýt)
 
 
         public Model()
@@ -41,9 +42,12 @@ namespace TollTracker.model
         /// <param name="pathToFile">cesta k souboru</param>
         /// <param name="errorCallback">funkce, která bude zavolána v případě chyby při čtení souboru a parsování souboru (jako parametr má funkce chybovou hlášku)</param>
         /// <param name="oneTollErrorCallback">funkce, která bude zavolána v případě chyby při parsování jednoho konkrétního mýta (jako parametr má funkce chybovou hlášku a pořadí mýta)</param>
+        /// <param name="showNumberOfProcessedTolls">funkce, která bude zavolána v případě zpracování jednoho mýta (jako parametr má funkce počet zpracovaných mýt)</param>
         /// <returns>false pokud nastala při čtení a parsování fatalní chyba, která zamezila načtení všech záznamů</returns>
-        public bool readFile(string pathToFile, Action<string> errorCallback, Action<int, string> oneTollErrorCallback)
+        public bool readFile(string pathToFile, Action<string> errorCallback, Action<int, string> oneTollErrorCallback, Action<int> showNumberOfProcessedTolls)
         {
+            this.oneTollErrorCallback = oneTollErrorCallback;
+            this.showNumberOfProcessedTolls = showNumberOfProcessedTolls;
             if (openConnection())
             {
                 try
@@ -61,14 +65,14 @@ namespace TollTracker.model
 
                     if (firstChar == '<')
                     {
-                        if (!parseXML(pathToFile, errorCallback, oneTollErrorCallback))
+                        if (!parseXML(pathToFile, errorCallback))
                         {
                             return false;
                         }
                     }
                     else if (firstChar == '{')
                     {
-                        if (!parseJSON(pathToFile, errorCallback, oneTollErrorCallback))
+                        if (!parseJSON(pathToFile, errorCallback))
                         {
                             return false;
                         }
@@ -155,13 +159,11 @@ namespace TollTracker.model
         /// <summary>
         /// Rozparsování JSON dat a uložení do databáze
         /// </summary>
-        /// <param name="content">JSON text</param>
+        /// <param name="pathToFile">cesta k JSON souboru</param>
         /// <param name="errorCallback">funkce, která bude zavolána v případě chyby při parsování (jako parametr má funkce chybovou hlášku)</param>
-        /// <param name="oneTollErrorCallback">funkce, která bude zavolána v případě chyby při parsování jednoho konkrétního mýta (jako parametr má funkce chybovou hlášku a id mýta)</param>
         /// <returns>false pokud nastala při parsování fatalní chyba, která zamezila načtení všech záznamů</returns>
-        private bool parseJSON(string pathToFile, Action<string> errorCallback, Action<int, string> oneTollErrorCallback)
+        private bool parseJSON(string pathToFile, Action<string> errorCallback)
         {
-            this.oneTollErrorCallback = oneTollErrorCallback;
             JSONParser parser = new JSONParser();
             if (!parser.loadData(pathToFile, errorCallback, oneTollErrorCallback, insertTollWithGPS))
             {
@@ -173,20 +175,15 @@ namespace TollTracker.model
         /// <summary>
         /// Rozparsování XML dat a uložení do databáze
         /// </summary>
-        /// <param name="content">XML text</param>
+        /// <param name="pathToFile">cesta k XML souboru</param>
         /// <param name="errorCallback">funkce, která bude zavolána v případě chyby při parsování (jako parametr má funkce chybovou hlášku)</param>
-        /// <param name="oneTollErrorCallback">funkce, která bude zavolána v případě chyby při parsování jednoho konkrétního mýta (jako parametr má funkce chybovou hlášku a id mýta)</param>
         /// <returns>false pokud nastala při parsování fatalní chyba, která zamezila načtení všech záznamů</returns>
-        private bool parseXML(string content, Action<string> errorCallback, Action<int, string> oneTollErrorCallback)
+        private bool parseXML(string pathToFile, Action<string> errorCallback)
         {
             XMLParser parser = new XMLParser();
-            if (!parser.loadData(content, errorCallback))
+            if (!parser.loadData(pathToFile, errorCallback, oneTollErrorCallback, insertTollWithTollGate))
             {
                 return false;
-            }
-            while (parser.next())
-            {
-                insertTollWithTollGate(0, parser.when, parser.price, parser.roadNumber, parser.roadType, parser.carType, parser.SPZ, parser.gateId, parser.gateType);
             }
             return true;
         }
@@ -222,16 +219,19 @@ namespace TollTracker.model
         /// <param name="gateId">id mýtné brány</param>
         /// <param name="gateType">typ mýtné brány (small, medium, large)</param>
         /// <returns>true pokud je záznam validní</returns>
-        private bool insertTollWithTollGate(int number, DateTime when, double price, string roadNumber, string roadType, string carType, string SPZ, int gateId, string gateType)
+        private void insertTollWithTollGate(int number, DateTime when, double price, string roadNumber, string roadType, string carType, string SPZ, string gateId, string gateType)
         {
             var insertGateX = false;
             var insertRoadX = false;
             var insertCarX = false;
 
+            showNumberOfProcessedTolls(number);
+
             switch (isGateTypeValid(gateId, gateType))
             {
                 case ValidType.nonValid:
-                    return false;
+                    oneTollErrorCallback(number, errMes);
+                    return;
                 case ValidType.validPresent:
                     break;
                 case ValidType.validNonPresent:
@@ -242,7 +242,8 @@ namespace TollTracker.model
             switch (isRoadTypeValid(roadNumber, roadType))
             {
                 case ValidType.nonValid:
-                    return false;
+                    oneTollErrorCallback(number, errMes);
+                    return;
                 case ValidType.validPresent:
                     break;
                 case ValidType.validNonPresent:
@@ -253,7 +254,8 @@ namespace TollTracker.model
             switch (isCarTypeValid(SPZ, carType))
             {
                 case ValidType.nonValid:
-                    return false;
+                    oneTollErrorCallback(number, errMes);
+                    return;
                 case ValidType.validPresent:
                     break;
                 case ValidType.validNonPresent:
@@ -261,19 +263,12 @@ namespace TollTracker.model
                     break;
             }
 
-            if (insertGateX)
-            {
-                if (!insertGate(gateId, gateType, roadNumber))
-                {
-                    return false;
-                }
-            }
-
             if (insertRoadX)
             {
                 if (!insertRoad(roadNumber, roadType))
                 {
-                    return false;
+                    oneTollErrorCallback(number, " (vkládání silnice do databáze) " + errMes);
+                    return;
                 }
             }
 
@@ -281,16 +276,23 @@ namespace TollTracker.model
             {
                 if (!insertCar(SPZ, carType))
                 {
-                    return false;
+                    oneTollErrorCallback(number, " (vkládání auta do databáze) " + errMes);
+                    return;
+                }
+            }
+            if (insertGateX)
+            {
+                if (!insertGate(gateId, gateType, roadNumber))
+                {
+                    oneTollErrorCallback(number, " (vkládání brány do databáze) " + errMes);
+                    return;
                 }
             }
 
-            if (insertToll(when, price, SPZ, gateId, -1))
+            if (!insertToll(when, price, SPZ, gateId, -1))
             {
-                return true;
-            }
-            else {
-                return false;
+                oneTollErrorCallback(number, " (vkládání mýta do databáze) " + errMes);
+                return;
             }
         }
 
@@ -310,6 +312,8 @@ namespace TollTracker.model
         {
             var insertRoadX = false;
             var insertCarX = false;
+
+            showNumberOfProcessedTolls(number);
 
             switch (isRoadTypeValid(roadNumber, roadType))
             {
@@ -361,7 +365,7 @@ namespace TollTracker.model
                 return;
             }
 
-            if (!insertToll(when, price, SPZ, -1, GPSid))
+            if (!insertToll(when, price, SPZ, "", GPSid))
             {
                 oneTollErrorCallback(number, " (vkládání mýta do databáze) " + errMes);
                 return;
@@ -419,7 +423,7 @@ namespace TollTracker.model
         /// <param name="type">typ brány</param>
         /// <param name="road_number">číslo silnice, na které se brána nachází</param>
         /// <returns>true pokud se povedlo vložit bránu</returns>
-        private bool insertGate(int gateId, string type, string road_number)
+        private bool insertGate(string gateId, string type, string road_number)
         {
             try
             {
@@ -468,10 +472,10 @@ namespace TollTracker.model
         /// <param name="tollGateId">id mýtné brány (-1, pokud se nejednalo o mýtnou bránu)</param>
         /// <param name="GPSGateId">id GPS souřadnic (-1, pokud se nejednalo o mýtné s GPS souřadnicema)</param>
         /// <returns>true pokud se povedlo vložit mýto</returns>
-        private bool insertToll(DateTime when, double price, string SPZ, int tollGateId, long GPSGateId)
+        private bool insertToll(DateTime when, double price, string SPZ, string tollGateId, long GPSGateId)
         {
             string query;
-            if (tollGateId == -1)
+            if (tollGateId == "")
             {
                 query = "INSERT INTO toll (whenn, price, car_spz, gps_gate_id) VALUES('" + when + "', '" + price.ToString(CultureInfo.CreateSpecificCulture("en-us")) + "', '" + SPZ + "', '" + GPSGateId + "')";
             }
@@ -497,14 +501,14 @@ namespace TollTracker.model
         /// <param name="tollGateId">id brány</param>
         /// <param name="type">typ brány</param>
         /// <returns>true pokud taková brána neexistuje nebo pokud existuje a má stejný typ (a pokud existuje takový typ)</returns>
-        private ValidType isGateTypeValid(int tollGateId, string type)
+        private ValidType isGateTypeValid(string tollGateId, string type)
         {
             if (!gateTypeSet.Contains(type))
             {
                 errMes = "Neexistující typ brány: " + type;
                 return ValidType.nonValid;
             }
-            return isTypeValid("toll_gate", "id", tollGateId.ToString(), type);
+            return isTypeValid("toll_gate", "id", tollGateId, type);
         }
 
         /// <summary>

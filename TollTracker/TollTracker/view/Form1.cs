@@ -13,10 +13,12 @@ namespace TollTracker
 {
     public partial class Form1 : Form
     {
+        private Model model;
+
         public Form1(Model model)
         {
+            this.model = model;
             InitializeComponent();
-            model.readFile("test.txt.json", printFileError, printOneTollError);
         }
 
         public void printFileError(string text) {
@@ -31,6 +33,16 @@ namespace TollTracker
             else {
                 listView1.Items.Add(text);
             }    
+        }
+
+        public void showNumberOfProcessedTolls(int number) {
+            label2.Text = number.ToString();
+            label2.Refresh();
+        }
+
+        private void Form1_Shown(object sender, EventArgs e)
+        {
+            model.readFile("testBig.txt.json", printFileError, printOneTollError, showNumberOfProcessedTolls);
         }
     }
 }
