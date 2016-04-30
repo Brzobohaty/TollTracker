@@ -19,8 +19,7 @@ namespace TollTracker.model
         private int number = 0; //pořadí mýta v souboru
 
         //údaje o jednom právě teď načteném mýtu
-        private int id; //id mýta
-        private DateTime when; //kdy bylo mýto zaznamenáno
+        private Nullable<DateTime> when; //kdy bylo mýto zaznamenáno
         private double price; //cena mýtného
         private string roadNumber; //idetifikační číslo silnice
         private string roadType; //typ silnice (1. třídy, 2. třídy, dálnice)
@@ -66,10 +65,10 @@ namespace TollTracker.model
                                         JObject toll = JObject.Load(jsReader);
                                         if (parseOneToll(toll))
                                         {
-                                            oneTollReadedCallback(id, when, price, roadNumber, roadType, carType, SPZ, GPSLongitude, GPSLatitude, GPSAccuracy);
+                                            oneTollReadedCallback(number, (DateTime)when, price, roadNumber, roadType, carType, SPZ, GPSLongitude, GPSLatitude, GPSAccuracy);
                                         }
                                         else {
-                                            errorOnOneTollCallback(id, errMes);
+                                            errorOnOneTollCallback(number, errMes);
                                         }
                                     }
                                 }
@@ -143,7 +142,7 @@ namespace TollTracker.model
         {
             errMes = "";
             number++;
-            if (!parseId(toll))
+            if (!parseWhen(toll))
             {
                 return false;
             }
@@ -183,25 +182,27 @@ namespace TollTracker.model
         }
 
         /// <summary>
-        /// Vyparsuje id mýta
+        /// Vyparsuje čas mýta
         /// </summary>
         /// <param name="toll">mýto</param>
         /// <returns>true pokud nenastala žádná chyba</returns>
-        private bool parseId(JToken toll)
+        private bool parseWhen(JToken toll)
         {
-            id = 0;
+            when = null;
             try
             {
-                id = toll.Value<int>("ts");
-                if (id == 0)
+                when = new DateTime(1970, 1, 1, 0, 0, 0, 0, System.DateTimeKind.Utc);
+                when = ((DateTime)when).AddSeconds(toll.Value<long>("ts")).ToLocalTime();
+                //when = new DateTime(toll.Value<long>("ts"));
+                if (when == null)
                 {
-                    errMes = "id " + number + ". mýta chybí";
+                    errMes = "čas " + number + ". mýta chybí";
                     return false;
                 }
             }
             catch (FormatException ex)
             {
-                errMes = "id " + number + ". mýta není číslo";
+                errMes = "čas " + number + ". mýta není platný timestamp";
                 return false;
             }
             return true;

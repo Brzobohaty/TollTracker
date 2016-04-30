@@ -17,9 +17,8 @@ namespace TollTracker.model
         private HashSet<string> gateTypeSet; //množina typů bran
         private HashSet<string> carTypeSet; //množina typů aut
         private HashSet<string> roadTypeSet; //množina typů silnic
-        private HashSet<int> tollIdSet; //množina id již vložených mýt
         private enum ValidType { validNonPresent, nonValid, validPresent }; //výčtový typ pro návratové hodnoty metod pro kontrolu typů { validní typ pro nový prvek; nevalidní typ; validní typ pro prvek, který už je v databázi} 
-        private Action<int, string> oneTollErrorCallback; //funkce, která bude zavolána v případě chyby při parsování jednoho záznamu mýta (jako parametry má funkce id mýta a chybovou hlášku)
+        private Action<int, string> oneTollErrorCallback; //funkce, která bude zavolána v případě chyby při parsování jednoho záznamu mýta (jako parametry má funkce pořadí mýta a chybovou hlášku)
         private String errMes; //poslední chybová hláška ke které došlo při práci s databází
 
 
@@ -32,7 +31,6 @@ namespace TollTracker.model
                 gateTypeSet = getTypeMap("gate_type");
                 carTypeSet = getTypeMap("car_type");
                 roadTypeSet = getTypeMap("road_type");
-                tollIdSet = getTollIdMap();
                 closeConnection();
             }
         }
@@ -42,7 +40,7 @@ namespace TollTracker.model
         /// </summary>
         /// <param name="pathToFile">cesta k souboru</param>
         /// <param name="errorCallback">funkce, která bude zavolána v případě chyby při čtení souboru a parsování souboru (jako parametr má funkce chybovou hlášku)</param>
-        /// <param name="oneTollErrorCallback">funkce, která bude zavolána v případě chyby při parsování jednoho konkrétního mýta (jako parametr má funkce chybovou hlášku a id mýta)</param>
+        /// <param name="oneTollErrorCallback">funkce, která bude zavolána v případě chyby při parsování jednoho konkrétního mýta (jako parametr má funkce chybovou hlášku a pořadí mýta)</param>
         /// <returns>false pokud nastala při čtení a parsování fatalní chyba, která zamezila načtení všech záznamů</returns>
         public bool readFile(string pathToFile, Action<string> errorCallback, Action<int, string> oneTollErrorCallback)
         {
@@ -224,7 +222,7 @@ namespace TollTracker.model
         /// <param name="gateId">id mýtné brány</param>
         /// <param name="gateType">typ mýtné brány (small, medium, large)</param>
         /// <returns>true pokud je záznam validní</returns>
-        private bool insertTollWithTollGate(int id, DateTime when, double price, string roadNumber, string roadType, string carType, string SPZ, int gateId, string gateType)
+        private bool insertTollWithTollGate(int number, DateTime when, double price, string roadNumber, string roadType, string carType, string SPZ, int gateId, string gateType)
         {
             var insertGateX = false;
             var insertRoadX = false;
@@ -287,7 +285,7 @@ namespace TollTracker.model
                 }
             }
 
-            if (insertToll(id, when, price, SPZ, gateId, -1))
+            if (insertToll(when, price, SPZ, gateId, -1))
             {
                 return true;
             }
@@ -299,7 +297,6 @@ namespace TollTracker.model
         /// <summary>
         /// Vloží do databáze jeden záznam o mýtném s GPS souřadnicema
         /// </summary>
-        /// <param name="id">id mýta</param>
         /// <param name="when">kdy bylo mýto zaznamenáno</param>
         /// <param name="price">cena mýtného</param>
         /// <param name="roadNumber">idetifikační číslo silnice</param>
@@ -309,7 +306,7 @@ namespace TollTracker.model
         /// <param name="GPSLongitude">zeměpisná délka GPS souřadnic, kde bylo mýto zaznamenáno</param>
         /// <param name="GPSLatitude">zeměpisná šířka GPS souřadnic, kde bylo mýto zaznamenáno</param>
         /// <param name="GPSAccuracy">přesnost GPS souřadnic, kde bylo mýto zaznamenáno</param>
-        private void insertTollWithGPS(int id, DateTime when, double price, string roadNumber, string roadType, string carType, string SPZ, double GPSLongitude, double GPSLatitude, int GPSAccuracy)
+        private void insertTollWithGPS(int number, DateTime when, double price, string roadNumber, string roadType, string carType, string SPZ, double GPSLongitude, double GPSLatitude, int GPSAccuracy)
         {
             var insertRoadX = false;
             var insertCarX = false;
@@ -317,7 +314,7 @@ namespace TollTracker.model
             switch (isRoadTypeValid(roadNumber, roadType))
             {
                 case ValidType.nonValid:
-                    oneTollErrorCallback(id, errMes);
+                    oneTollErrorCallback(number, errMes);
                     return;
                 case ValidType.validPresent:
                     break;
@@ -329,7 +326,7 @@ namespace TollTracker.model
             switch (isCarTypeValid(SPZ, carType))
             {
                 case ValidType.nonValid:
-                    oneTollErrorCallback(id, errMes);
+                    oneTollErrorCallback(number, errMes);
                     return;
                 case ValidType.validPresent:
                     break;
@@ -342,7 +339,7 @@ namespace TollTracker.model
             {
                 if (!insertRoad(roadNumber, roadType))
                 {
-                    oneTollErrorCallback(id, " (vkládání silnice do databáze) " + errMes);
+                    oneTollErrorCallback(number, " (vkládání silnice do databáze) " + errMes);
                     return;
                 }
             }
@@ -351,7 +348,7 @@ namespace TollTracker.model
             {
                 if (!insertCar(SPZ, carType))
                 {
-                    oneTollErrorCallback(id, " (vkládání auta do databáze) " + errMes);
+                    oneTollErrorCallback(number, " (vkládání auta do databáze) " + errMes);
                     return;
                 }
             }
@@ -360,13 +357,13 @@ namespace TollTracker.model
 
             if (GPSid == -1)
             {
-                oneTollErrorCallback(id, " (vkládání GPS souřadnic do databáze) " + errMes);
+                oneTollErrorCallback(number, " (vkládání GPS souřadnic do databáze) " + errMes);
                 return;
             }
 
-            if (!insertToll(id, when, price, SPZ, -1, GPSid))
+            if (!insertToll(when, price, SPZ, -1, GPSid))
             {
-                oneTollErrorCallback(id, " (vkládání mýta do databáze) " + errMes);
+                oneTollErrorCallback(number, " (vkládání mýta do databáze) " + errMes);
                 return;
             }
         }
@@ -460,32 +457,26 @@ namespace TollTracker.model
                 errMes = ex.Message;
                 return -1;
             }
-            return -1;
         }
 
         /// <summary>
         /// Vloží do databáze mýto s danými parametry
         /// </summary>
-        /// <param name="id">id mýta</param>
         /// <param name="when">kdy bylo mýto zaznamenáno</param>
         /// <param name="price">cena mýta</param>
         /// <param name="SPZ">SPZ auta, ke ketrému mýto patří</param>
         /// <param name="tollGateId">id mýtné brány (-1, pokud se nejednalo o mýtnou bránu)</param>
         /// <param name="GPSGateId">id GPS souřadnic (-1, pokud se nejednalo o mýtné s GPS souřadnicema)</param>
         /// <returns>true pokud se povedlo vložit mýto</returns>
-        private bool insertToll(int id, DateTime when, double price, string SPZ, int tollGateId, long GPSGateId)
+        private bool insertToll(DateTime when, double price, string SPZ, int tollGateId, long GPSGateId)
         {
             string query;
-            if (tollIdSet.Contains(id))
+            if (tollGateId == -1)
             {
-                query = "UPDATE toll SET whenn = '" + when + "', price = '" + price.ToString(CultureInfo.CreateSpecificCulture("en-us")) + "', car_spz = '" + SPZ + "', gps_gate_id = '" + GPSGateId + "' WHERE id=" + id;
-            }
-            else if (tollGateId == -1)
-            {
-                query = "INSERT INTO toll (id, whenn, price, car_spz, gps_gate_id) VALUES('" + id + "', '" + when + "', '" + price.ToString(CultureInfo.CreateSpecificCulture("en-us")) + "', '" + SPZ + "', '" + GPSGateId + "')";
+                query = "INSERT INTO toll (whenn, price, car_spz, gps_gate_id) VALUES('" + when + "', '" + price.ToString(CultureInfo.CreateSpecificCulture("en-us")) + "', '" + SPZ + "', '" + GPSGateId + "')";
             }
             else {
-                query = "INSERT INTO toll (id, whenn, price, car_spz, toll_gate_id) VALUES('" + id + "', '" + when + "', '" + price.ToString(CultureInfo.CreateSpecificCulture("en-us")) + "', '" + SPZ + "', '" + tollGateId + "')";
+                query = "INSERT INTO toll (whenn, price, car_spz, toll_gate_id) VALUES('" + when + "', '" + price.ToString(CultureInfo.CreateSpecificCulture("en-us")) + "', '" + SPZ + "', '" + tollGateId + "')";
             }
             try
             {
@@ -612,25 +603,6 @@ namespace TollTracker.model
             }
             dr.Close();
             return typeMap;
-        }
-
-        /// <summary>
-        /// Vytvoří množinu id mýt z databáze
-        /// </summary>
-        /// <returns>množina id</returns>
-        private HashSet<int> getTollIdMap()
-        {
-            HashSet<int> map = new HashSet<int>();
-
-            string query = "SELECT id FROM toll";
-            NpgsqlCommand command = new NpgsqlCommand(query, connection);
-            NpgsqlDataReader dr = command.ExecuteReader();
-            while (dr.Read())
-            {
-                map.Add((int)dr["id"]);
-            }
-            dr.Close();
-            return map;
         }
     }
 }

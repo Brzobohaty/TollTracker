@@ -23,10 +23,10 @@ namespace TollTracker
             label1.Text = text;
         }
 
-        public void printOneTollError(int tollId, string text) {
-            if (tollId != 0)
+        public void printOneTollError(int tollOrderNumber, string text) {
+            if (tollOrderNumber != 0)
             {
-                listView1.Items.Add("Na mýtu s ID " + tollId + " došlo k chybě: " + text);
+                listView1.Items.Add("Na " + tollOrderNumber + ". mýtu v souboru došlo k chybě: " + text);
             }
             else {
                 listView1.Items.Add(text);
