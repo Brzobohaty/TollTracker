@@ -412,7 +412,7 @@ namespace TollTracker.model
             GPSAccuracy = 9999999;
             try
             {
-                GPSAccuracy = toll.Value<int>("gps_accuracy");
+                GPSAccuracy = toll.Value<int>("gps_accurancy");
                 if (GPSAccuracy == 9999999)
                 {
                     errMes = "gps_accuracy " + number + ". mýta chybí";

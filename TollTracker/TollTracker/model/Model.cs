@@ -1,6 +1,7 @@
 ﻿using Npgsql;
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -16,18 +17,22 @@ namespace TollTracker.model
         private HashSet<string> gateTypeSet; //množina typů bran
         private HashSet<string> carTypeSet; //množina typů aut
         private HashSet<string> roadTypeSet; //množina typů silnic
+        private HashSet<int> tollIdSet; //množina id již vložených mýt
         private enum ValidType { validNonPresent, nonValid, validPresent }; //výčtový typ pro návratové hodnoty metod pro kontrolu typů { validní typ pro nový prvek; nevalidní typ; validní typ pro prvek, který už je v databázi} 
         private Action<int, string> oneTollErrorCallback; //funkce, která bude zavolána v případě chyby při parsování jednoho záznamu mýta (jako parametry má funkce id mýta a chybovou hlášku)
         private String errMes; //poslední chybová hláška ke které došlo při práci s databází
+
 
         public Model()
         {
             if (openConnection())
             {
+                deleteAll();
                 inicializeDB();
                 gateTypeSet = getTypeMap("gate_type");
                 carTypeSet = getTypeMap("car_type");
                 roadTypeSet = getTypeMap("road_type");
+                tollIdSet = getTollIdMap();
                 closeConnection();
             }
         }
@@ -89,7 +94,37 @@ namespace TollTracker.model
 
         /****************************************************************PRIVATE*******************************************************/
 
+        /// <summary>
+        /// smaže obsah všech tabulek, do kterých se nahrávají data
+        /// </summary>
+        private void deleteAll()
+        {
+            deleteAllFromTable("toll", false);
+            deleteAllFromTable("gps_gate", true);
+            deleteAllFromTable("car", true);
+            deleteAllFromTable("road", true);
+        }
 
+        /// <summary>
+        /// smaže obsah dané tabulky
+        /// </summary>
+        /// <param name="tableName">název tabulky</param>
+        /// <param name="cascade">zda kaskádově mazat z ostatních tabulek</param>
+        /// <returns></returns>
+        private void deleteAllFromTable(string tableName, bool cascade)
+        {
+            string query = "TRUNCATE TABLE " + tableName;
+            if (cascade)
+            {
+                query += " CASCADE";
+            }
+            NpgsqlCommand command = new NpgsqlCommand(query, connection);
+            command.ExecuteNonQuery();
+        }
+
+        /// <summary>
+        /// Nahraje do databáze typy aut, silnic a bran
+        /// </summary>
         private void inicializeDB()
         {
             gateTypeSet = getTypeMap("gate_type");
@@ -107,6 +142,11 @@ namespace TollTracker.model
             insertType("road_type", "I.Tr");
         }
 
+        /// <summary>
+        /// Vloží typ něčeho do databáze
+        /// </summary>
+        /// <param name="tableName">jméno tabulky typu</param>
+        /// <param name="typeName">hodnota typu</param>
         private void insertType(string tableName, string typeName)
         {
             string query = "INSERT INTO " + tableName + " (name) VALUES('" + typeName + "')";
@@ -406,19 +446,21 @@ namespace TollTracker.model
         /// <param name="accuracy">přesnost GPS souřadnic</param>
         /// <param name="road_number">číslo silnice, na které byly GPS souřadnice zachyceny</param>
         /// <returns>pokud se povedlo, tak vrací id a jinak -1</returns>
-        private long insertGPSGate(double longitude, double latitude, int accuracy, string road_number)
+        private int insertGPSGate(double longitude, double latitude, int accuracy, string road_number)
         {
+            NpgsqlDataReader dr;
             try
             {
-                string query = "INSERT INTO GPS_gate (longitude, latitude, accuracy, road_number) VALUES('" + longitude + "', '" + latitude + "', '" + accuracy + "', '" + road_number + "') RETURNING id";
+                string query = "INSERT INTO gps_gate (longitude, latitude, accuracy, road_number) VALUES(" + longitude.ToString(CultureInfo.CreateSpecificCulture("en-us")) + ", " + latitude.ToString(CultureInfo.CreateSpecificCulture("en-us")) + ", " + accuracy + ", '" + road_number + "') RETURNING id";
                 NpgsqlCommand command = new NpgsqlCommand(query, connection);
-                return command.ExecuteNonQuery();
+                return (int)command.ExecuteScalar();
             }
             catch (Exception ex)
             {
                 errMes = ex.Message;
                 return -1;
             }
+            return -1;
         }
 
         /// <summary>
@@ -433,17 +475,20 @@ namespace TollTracker.model
         /// <returns>true pokud se povedlo vložit mýto</returns>
         private bool insertToll(int id, DateTime when, double price, string SPZ, int tollGateId, long GPSGateId)
         {
-            string gatesValue;
-            if (tollGateId == -1)
+            string query;
+            if (tollIdSet.Contains(id))
             {
-                gatesValue = "NULL', '" + GPSGateId;
+                query = "UPDATE toll SET whenn = '" + when + "', price = '" + price.ToString(CultureInfo.CreateSpecificCulture("en-us")) + "', car_spz = '" + SPZ + "', gps_gate_id = '" + GPSGateId + "' WHERE id=" + id;
+            }
+            else if (tollGateId == -1)
+            {
+                query = "INSERT INTO toll (id, whenn, price, car_spz, gps_gate_id) VALUES('" + id + "', '" + when + "', '" + price.ToString(CultureInfo.CreateSpecificCulture("en-us")) + "', '" + SPZ + "', '" + GPSGateId + "')";
             }
             else {
-                gatesValue = tollGateId + "', 'NULL";
+                query = "INSERT INTO toll (id, whenn, price, car_spz, toll_gate_id) VALUES('" + id + "', '" + when + "', '" + price.ToString(CultureInfo.CreateSpecificCulture("en-us")) + "', '" + SPZ + "', '" + tollGateId + "')";
             }
             try
             {
-                string query = "INSERT INTO toll (id, when, price, car_SPZ, toll_gate_id, GPS_gate_id) VALUES('" + id + "', '" + when + "', '" + price + "', '" + SPZ + "', '" + gatesValue + "')";
                 NpgsqlCommand command = new NpgsqlCommand(query, connection);
                 command.ExecuteNonQuery();
                 return true;
@@ -517,7 +562,7 @@ namespace TollTracker.model
             NpgsqlDataReader dr;
             try
             {
-                string query = "SELECT type FROM " + table + " WHERE " + idColumnName + " = '" + idColumnValue + "' LIMIT 1";
+                string query = "SELECT type FROM " + table + " WHERE " + idColumnName.ToLower() + " = '" + idColumnValue + "' LIMIT 1";
                 NpgsqlCommand command = new NpgsqlCommand(query, connection);
                 dr = command.ExecuteReader();
             }
@@ -526,21 +571,26 @@ namespace TollTracker.model
                 errMes = ex.Message;
                 return ValidType.nonValid;
             }
-
-            if (dr.Read())
+            try
             {
-                string typeFromDb = dr["type"] + "";
-                dr.Close();
-                if (typeFromDb == type)
+                if (dr.Read())
                 {
-                    return ValidType.validPresent;
+                    string typeFromDb = dr["type"] + "";
+                    if (typeFromDb == type)
+                    {
+                        return ValidType.validPresent;
+                    }
+                    else {
+                        errMes = "Již je v databázi prvek s idColumnName :" + idColumnValue + ", ale má přiřazený jiný typ (" + typeFromDb + " != " + type + ") silnice.";
+                        return ValidType.nonValid;
+                    }
                 }
-                else {
-                    errMes = "Již je v databázi prvek s idColumnName :" + idColumnValue + ", ale má přiřazený jiný typ (" + typeFromDb + " != " + type + ") silnice.";
-                    return ValidType.nonValid;
-                }
+                return ValidType.validNonPresent;
             }
-            return ValidType.validNonPresent;
+            finally
+            {
+                dr.Close();
+            }
         }
 
         /// <summary>
@@ -562,6 +612,25 @@ namespace TollTracker.model
             }
             dr.Close();
             return typeMap;
+        }
+
+        /// <summary>
+        /// Vytvoří množinu id mýt z databáze
+        /// </summary>
+        /// <returns>množina id</returns>
+        private HashSet<int> getTollIdMap()
+        {
+            HashSet<int> map = new HashSet<int>();
+
+            string query = "SELECT id FROM toll";
+            NpgsqlCommand command = new NpgsqlCommand(query, connection);
+            NpgsqlDataReader dr = command.ExecuteReader();
+            while (dr.Read())
+            {
+                map.Add((int)dr["id"]);
+            }
+            dr.Close();
+            return map;
         }
     }
 }
