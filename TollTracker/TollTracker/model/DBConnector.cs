@@ -12,7 +12,7 @@ namespace TollTracker.model
     /// <summary>
     /// Abstarktní třída pro modely, která zajišťuje hlavní práci s DB
     /// </summary>
-    abstract class DBConnector
+    public abstract class DBConnector
     {
         private const string server = "localhost";
         private const string port = "5432";

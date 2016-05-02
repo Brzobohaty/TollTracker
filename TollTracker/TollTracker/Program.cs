@@ -18,7 +18,7 @@ namespace TollTracker
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
             Model model = new Model();
-            Application.Run(new Form1());
+            Application.Run(new Form1(model));
         }
     }
 }
