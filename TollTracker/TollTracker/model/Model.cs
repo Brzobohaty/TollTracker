@@ -99,18 +99,36 @@ namespace TollTracker.model
         /// </summary>
         /// <param name="gateId">id mýtné brány</param>
         /// <returns>průjezdy aut zvolenou mýtnou branou</returns>
-        public bool getGateReport(int gateId)
+        public List<String> getGateReport(String gateId)
         {
-            return true;
+            StringBuilder builder = new StringBuilder();
+            builder.Append("SELECT concat_ws(', ', car.spz, car.type, whenn) FROM toll ");
+            builder.Append("JOIN car ON toll.car_spz = car.spz ");
+            builder.Append("WHERE((toll.gps_gate_id IS NOT NULL) AND(toll.gps_gate_id = '");
+            builder.Append(gateId);
+            builder.Append("')) OR((toll.toll_gate_id IS NOT NULL) AND(toll.toll_gate_id = '");
+            builder.Append(gateId);
+            builder.Append("'))");
+
+            return getSelectResults(builder.ToString());
         }
 
         /// <summary>
         /// Získá z databáze informace o sumě vybraných peněz pro každý druh vozidla
         /// </summary>
         /// <returns>obnosy vybraných peněz</returns>
-        public bool getTollsSummary()
+        public List<String> getTollsSummary()
         {
-            return true;
+            StringBuilder builder = new StringBuilder();
+            builder.Append("SELECT 'Auta pod 3.5t: ' || SUM(price) || ',- CZK' FROM toll ");
+            builder.Append("LEFT JOIN car ON car.spz = toll.car_spz ");
+            builder.Append("WHERE car.type = 'below 3.5t' ");
+            builder.Append("UNION ");
+            builder.Append("SELECT 'Auta nad 3.5t: ' || SUM(price) || ',- CZK' FROM toll ");
+            builder.Append("LEFT JOIN car ON car.spz = toll.car_spz ");
+            builder.Append("WHERE car.type = 'over 3.5t'");
+
+            return getSelectResults(builder.ToString());
         }
 
         /// <summary>
@@ -121,9 +139,9 @@ namespace TollTracker.model
         /// /// <param name="from">termín od kdy</param>
         /// /// <param name="to">termín do kdy</param>
         /// <returns>obnosy vybraných peněz</returns>
-        public bool getVehicleToll(String spz, DateTime from, DateTime to)
+        public List<String> getVehicleToll(String spz, DateTime from, DateTime to)
         {
-            return true;
+            return getSelectResults("SELECT spz FROM car");
         }
 
         /// <summary>
@@ -131,9 +149,18 @@ namespace TollTracker.model
         /// </summary>
         /// <param name="spz">id mýtné brány</param>
         /// <returns>seznam pozic a časů, kde se vozidlo pohybovalo</returns>
-        public bool getVehicleTrackingData(String spz)
+        public List<String> getVehicleTrackingData(String spz)
         {
-            return true;
+            StringBuilder builder = new StringBuilder();
+            builder.Append("SELECT concat_ws(', ', whenn::text, 'silnice: ' || gps_gate.road_number::text, toll_gate.road_number::text, price::text || ',- CZK') FROM toll ");
+            builder.Append("LEFT JOIN gps_gate ON gps_gate.id = toll.gps_gate_id ");
+            builder.Append("LEFT JOIN toll_gate ON toll_gate.id = toll.toll_gate_id ");
+            builder.Append("WHERE (toll.gps_gate_id IS NOT NULL  OR toll.toll_gate_id IS NOT NULL) ");
+            builder.Append("AND car_spz = '");
+            builder.Append(spz);
+            builder.Append("' ORDER BY whenn");
+
+            return getSelectResults(builder.ToString());
         }
 
         /// <summary>
@@ -142,34 +169,7 @@ namespace TollTracker.model
         /// <returns>List obsahující spz všech aut</returns>
         public List<String> getAllVehicles()
         {
-            List<String> queryResult = new List<string>();
-            if (openConnection())
-            {
-                try
-                {
-                    string query = "SELECT spz FROM car";
-                    NpgsqlCommand command = new NpgsqlCommand(query, connection);
-                    NpgsqlDataReader dr = command.ExecuteReader();
-
-                    while (dr.Read())
-                    {
-                        queryResult.Add(dr[0].ToString());
-                    }
-                    return queryResult;
-                }
-                catch (Exception ex)
-                {
-                    errMes = ex.Message;
-                    return queryResult;
-                }
-                finally
-                {
-                    closeConnection();
-                }
-            } else
-            {
-                return queryResult;
-            } 
+            return getSelectResults("SELECT spz FROM car");
         }
 
         /// <summary>
@@ -178,35 +178,7 @@ namespace TollTracker.model
         /// <returns>List všech mýtných bran</returns>
         public List<String> getAllGates()
         {
-            List<String> queryResult = new List<string>();
-            if (openConnection())
-            {
-                try
-                {
-                    string query = "SELECT id FROM toll_gate UNION SELECT CAST(id as text) FROM gps_gate";
-                    NpgsqlCommand command = new NpgsqlCommand(query, connection);
-                    NpgsqlDataReader dr = command.ExecuteReader();
-
-                    while (dr.Read())
-                    {
-                        queryResult.Add(dr[0].ToString());
-                    }
-                    return queryResult;
-                }
-                catch (Exception ex)
-                {
-                    errMes = ex.Message;
-                    return queryResult;
-                }
-                finally
-                {
-                    closeConnection();
-                }
-            }
-            else
-            {
-                return queryResult;
-            }
+            return getSelectResults("SELECT id FROM toll_gate UNION SELECT CAST(id as text) FROM gps_gate");
         }
 
         /****************************************************************PRIVATE*******************************************************/
@@ -722,6 +694,43 @@ namespace TollTracker.model
             }
             dr.Close();
             return typeMap;
+        }
+
+        /// <summary>
+        /// Získá z databáze výsledky pro zadaný dotaz
+        /// </summary>
+        /// <param name="query">SQL dotaz</param>
+        /// <returns>List obsahující výsledky dotazu</returns>
+        private List<String> getSelectResults(String query)
+        {
+            List<String> queryResult = new List<string>();
+            if (openConnection())
+            {
+                try
+                {
+                    NpgsqlCommand command = new NpgsqlCommand(query, connection);
+                    NpgsqlDataReader dr = command.ExecuteReader();
+
+                    while (dr.Read())
+                    {
+                        queryResult.Add(dr[0].ToString());
+                    }
+                    return queryResult;
+                }
+                catch (Exception ex)
+                {
+                    errMes = ex.Message;
+                    return queryResult;
+                }
+                finally
+                {
+                    closeConnection();
+                }
+            }
+            else
+            {
+                return queryResult;
+            }
         }
     }
 }

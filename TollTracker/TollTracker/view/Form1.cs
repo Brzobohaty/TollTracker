@@ -39,23 +39,31 @@ namespace TollTracker
 
         private void executeButton_Click(object sender, EventArgs e)
         {
-            //TODO zde se budou spouštět dotazy a nastavovat data do resultsGridView
-            model.Model m = new model.Model();
-            switch (reportProperties.SelectedTab.Name)
+            listView1.Items.Clear();
+            List<String> results = new List<String>();
+            String report = reportProperties.SelectedTab.Name;
+            switch (report)
             {
-                case "Vehicle Tracking":
-                    //m.getVehicleTrackingData(vehicle);
+                case "vehicleTrackingPage":
+                    results = model.getVehicleTrackingData(vehiclePicker.GetItemText(vehiclePicker.SelectedItem));
                     break;
-                case "Vehicle Toll":
+                case "vehicleTollPage":
                     //m.getVehicleToll(vehicle,from,to);
                     break;
-                case "Tolls Summary":
-                    //m.getTollsSummary();
+                case "tollsSummaryPage":
+                    results = model.getTollsSummary();
                     break;
-                case "Gate Report":
-                    //m.getGateReport(gate);
+                case "gateReportPage":
+                    results = model.getGateReport(gatePicker.GetItemText(gatePicker.SelectedItem));
                     break;
-            }   
+                default:
+                    listView1.Items.Add("Prosím zvolte jeden z dotazů");
+                break;
+            }
+            foreach (String result in results)
+            {
+                listView1.Items.Add(result);
+            }
         }
 
         private void initializeReportProperties(object sender, EventArgs e)

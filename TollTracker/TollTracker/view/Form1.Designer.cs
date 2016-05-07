@@ -29,18 +29,18 @@
         private void InitializeComponent()
         {
             this.reportProperties = new System.Windows.Forms.TabControl();
-            this.vehicelTrackingPage = new System.Windows.Forms.TabPage();
+            this.vehicleTrackingPage = new System.Windows.Forms.TabPage();
             this.vehiclePicker = new System.Windows.Forms.ListBox();
-            this.vehiceTollPage = new System.Windows.Forms.TabPage();
+            this.vehicleTollPage = new System.Windows.Forms.TabPage();
             this.monthCalendar1 = new System.Windows.Forms.MonthCalendar();
             this.groupBox1 = new System.Windows.Forms.GroupBox();
             this.monthlyRadioButton = new System.Windows.Forms.RadioButton();
             this.weeklyRadioButton = new System.Windows.Forms.RadioButton();
             this.dailyRadioButton = new System.Windows.Forms.RadioButton();
             this.vehiclePicker2 = new System.Windows.Forms.ListBox();
-            this.tollSummaryPage = new System.Windows.Forms.TabPage();
+            this.tollsSummaryPage = new System.Windows.Forms.TabPage();
             this.tollSummaryInfoLabel = new System.Windows.Forms.Label();
-            this.gatereportPage = new System.Windows.Forms.TabPage();
+            this.gateReportPage = new System.Windows.Forms.TabPage();
             this.gatePicker = new System.Windows.Forms.ListBox();
             this.importButton = new System.Windows.Forms.Button();
             this.executeButton = new System.Windows.Forms.Button();
@@ -52,35 +52,35 @@
             this.columnHeader1 = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.label2 = new System.Windows.Forms.Label();
             this.reportProperties.SuspendLayout();
-            this.vehicelTrackingPage.SuspendLayout();
-            this.vehiceTollPage.SuspendLayout();
+            this.vehicleTrackingPage.SuspendLayout();
+            this.vehicleTollPage.SuspendLayout();
             this.groupBox1.SuspendLayout();
-            this.tollSummaryPage.SuspendLayout();
-            this.gatereportPage.SuspendLayout();
+            this.tollsSummaryPage.SuspendLayout();
+            this.gateReportPage.SuspendLayout();
             this.SuspendLayout();
             // 
             // reportProperties
             // 
-            this.reportProperties.Controls.Add(this.vehicelTrackingPage);
-            this.reportProperties.Controls.Add(this.vehiceTollPage);
-            this.reportProperties.Controls.Add(this.tollSummaryPage);
-            this.reportProperties.Controls.Add(this.gatereportPage);
+            this.reportProperties.Controls.Add(this.vehicleTrackingPage);
+            this.reportProperties.Controls.Add(this.vehicleTollPage);
+            this.reportProperties.Controls.Add(this.tollsSummaryPage);
+            this.reportProperties.Controls.Add(this.gateReportPage);
             this.reportProperties.Location = new System.Drawing.Point(12, 12);
             this.reportProperties.Name = "reportProperties";
             this.reportProperties.SelectedIndex = 0;
             this.reportProperties.Size = new System.Drawing.Size(320, 301);
             this.reportProperties.TabIndex = 5;
             // 
-            // vehicelTrackingPage
+            // vehicleTrackingPage
             // 
-            this.vehicelTrackingPage.Controls.Add(this.vehiclePicker);
-            this.vehicelTrackingPage.Location = new System.Drawing.Point(4, 22);
-            this.vehicelTrackingPage.Name = "vehicelTrackingPage";
-            this.vehicelTrackingPage.Padding = new System.Windows.Forms.Padding(3);
-            this.vehicelTrackingPage.Size = new System.Drawing.Size(312, 275);
-            this.vehicelTrackingPage.TabIndex = 0;
-            this.vehicelTrackingPage.Text = "Vehicle Tracking";
-            this.vehicelTrackingPage.UseVisualStyleBackColor = true;
+            this.vehicleTrackingPage.Controls.Add(this.vehiclePicker);
+            this.vehicleTrackingPage.Location = new System.Drawing.Point(4, 22);
+            this.vehicleTrackingPage.Name = "vehicleTrackingPage";
+            this.vehicleTrackingPage.Padding = new System.Windows.Forms.Padding(3);
+            this.vehicleTrackingPage.Size = new System.Drawing.Size(312, 275);
+            this.vehicleTrackingPage.TabIndex = 0;
+            this.vehicleTrackingPage.Text = "Vehicle Tracking";
+            this.vehicleTrackingPage.UseVisualStyleBackColor = true;
             // 
             // vehiclePicker
             // 
@@ -90,18 +90,18 @@
             this.vehiclePicker.Size = new System.Drawing.Size(306, 95);
             this.vehiclePicker.TabIndex = 0;
             // 
-            // vehiceTollPage
+            // vehicleTollPage
             // 
-            this.vehiceTollPage.Controls.Add(this.monthCalendar1);
-            this.vehiceTollPage.Controls.Add(this.groupBox1);
-            this.vehiceTollPage.Controls.Add(this.vehiclePicker2);
-            this.vehiceTollPage.Location = new System.Drawing.Point(4, 22);
-            this.vehiceTollPage.Name = "vehiceTollPage";
-            this.vehiceTollPage.Padding = new System.Windows.Forms.Padding(3);
-            this.vehiceTollPage.Size = new System.Drawing.Size(312, 275);
-            this.vehiceTollPage.TabIndex = 1;
-            this.vehiceTollPage.Text = "Vehicle Toll";
-            this.vehiceTollPage.UseVisualStyleBackColor = true;
+            this.vehicleTollPage.Controls.Add(this.monthCalendar1);
+            this.vehicleTollPage.Controls.Add(this.groupBox1);
+            this.vehicleTollPage.Controls.Add(this.vehiclePicker2);
+            this.vehicleTollPage.Location = new System.Drawing.Point(4, 22);
+            this.vehicleTollPage.Name = "vehicleTollPage";
+            this.vehicleTollPage.Padding = new System.Windows.Forms.Padding(3);
+            this.vehicleTollPage.Size = new System.Drawing.Size(312, 275);
+            this.vehicleTollPage.TabIndex = 1;
+            this.vehicleTollPage.Text = "Vehicle Toll";
+            this.vehicleTollPage.UseVisualStyleBackColor = true;
             // 
             // monthCalendar1
             // 
@@ -161,15 +161,15 @@
             this.vehiclePicker2.Size = new System.Drawing.Size(306, 95);
             this.vehiclePicker2.TabIndex = 1;
             // 
-            // tollSummaryPage
+            // tollsSummaryPage
             // 
-            this.tollSummaryPage.Controls.Add(this.tollSummaryInfoLabel);
-            this.tollSummaryPage.Location = new System.Drawing.Point(4, 22);
-            this.tollSummaryPage.Name = "tollSummaryPage";
-            this.tollSummaryPage.Size = new System.Drawing.Size(312, 275);
-            this.tollSummaryPage.TabIndex = 2;
-            this.tollSummaryPage.Text = "Tolls Summary";
-            this.tollSummaryPage.UseVisualStyleBackColor = true;
+            this.tollsSummaryPage.Controls.Add(this.tollSummaryInfoLabel);
+            this.tollsSummaryPage.Location = new System.Drawing.Point(4, 22);
+            this.tollsSummaryPage.Name = "tollsSummaryPage";
+            this.tollsSummaryPage.Size = new System.Drawing.Size(312, 275);
+            this.tollsSummaryPage.TabIndex = 2;
+            this.tollsSummaryPage.Text = "Tolls Summary";
+            this.tollsSummaryPage.UseVisualStyleBackColor = true;
             // 
             // tollSummaryInfoLabel
             // 
@@ -180,15 +180,15 @@
             this.tollSummaryInfoLabel.TabIndex = 0;
             this.tollSummaryInfoLabel.Text = "Just press Execute";
             // 
-            // gatereportPage
+            // gateReportPage
             // 
-            this.gatereportPage.Controls.Add(this.gatePicker);
-            this.gatereportPage.Location = new System.Drawing.Point(4, 22);
-            this.gatereportPage.Name = "gatereportPage";
-            this.gatereportPage.Size = new System.Drawing.Size(312, 275);
-            this.gatereportPage.TabIndex = 3;
-            this.gatereportPage.Text = "Gate Report";
-            this.gatereportPage.UseVisualStyleBackColor = true;
+            this.gateReportPage.Controls.Add(this.gatePicker);
+            this.gateReportPage.Location = new System.Drawing.Point(4, 22);
+            this.gateReportPage.Name = "gateReportPage";
+            this.gateReportPage.Size = new System.Drawing.Size(312, 275);
+            this.gateReportPage.TabIndex = 3;
+            this.gateReportPage.Text = "Gate Report";
+            this.gateReportPage.UseVisualStyleBackColor = true;
             // 
             // gatePicker
             // 
@@ -237,9 +237,8 @@
             this.label1.AutoSize = true;
             this.label1.Location = new System.Drawing.Point(9, 375);
             this.label1.Name = "label1";
-            this.label1.Size = new System.Drawing.Size(35, 13);
+            this.label1.Size = new System.Drawing.Size(0, 13);
             this.label1.TabIndex = 0;
-            this.label1.Text = "label1";
             // 
             // listView1
             // 
@@ -262,9 +261,8 @@
             this.label2.AutoSize = true;
             this.label2.Location = new System.Drawing.Point(338, 12);
             this.label2.Name = "label2";
-            this.label2.Size = new System.Drawing.Size(35, 13);
+            this.label2.Size = new System.Drawing.Size(0, 13);
             this.label2.TabIndex = 2;
-            this.label2.Text = "label2";
             // 
             // Form1
             // 
@@ -280,16 +278,16 @@
             this.Controls.Add(this.label1);
             this.Margin = new System.Windows.Forms.Padding(2);
             this.Name = "Form1";
-            this.Text = "Form1";
+            this.Text = "TollTracker";
             this.Shown += new System.EventHandler(this.Form1_Shown);
             this.reportProperties.ResumeLayout(false);
-            this.vehicelTrackingPage.ResumeLayout(false);
-            this.vehiceTollPage.ResumeLayout(false);
+            this.vehicleTrackingPage.ResumeLayout(false);
+            this.vehicleTollPage.ResumeLayout(false);
             this.groupBox1.ResumeLayout(false);
             this.groupBox1.PerformLayout();
-            this.tollSummaryPage.ResumeLayout(false);
-            this.tollSummaryPage.PerformLayout();
-            this.gatereportPage.ResumeLayout(false);
+            this.tollsSummaryPage.ResumeLayout(false);
+            this.tollsSummaryPage.PerformLayout();
+            this.gateReportPage.ResumeLayout(false);
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -298,13 +296,13 @@
         #endregion
 
         private System.Windows.Forms.TabControl reportProperties;
-        private System.Windows.Forms.TabPage vehicelTrackingPage;
-        private System.Windows.Forms.TabPage tollSummaryPage;
-        private System.Windows.Forms.TabPage gatereportPage;
+        private System.Windows.Forms.TabPage vehicleTrackingPage;
+        private System.Windows.Forms.TabPage tollsSummaryPage;
+        private System.Windows.Forms.TabPage gateReportPage;
         private System.Windows.Forms.Button importButton;
         private System.Windows.Forms.Button executeButton;
         private System.Windows.Forms.Button exportButton;
-        private System.Windows.Forms.TabPage vehiceTollPage;
+        private System.Windows.Forms.TabPage vehicleTollPage;
         private System.Windows.Forms.ListBox vehiclePicker;
         private System.Windows.Forms.ListBox vehiclePicker2;
         private System.Windows.Forms.MonthCalendar monthCalendar1;
