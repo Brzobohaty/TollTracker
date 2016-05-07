@@ -102,5 +102,23 @@ namespace TollTracker
         {
             
         }
+
+        private void dailyRadioButton_CheckedChanged(object sender, EventArgs e)
+        {
+            datePicker.Format = DateTimePickerFormat.Custom;
+            datePicker.CustomFormat = "d. MMMM yyyy";
+        }
+
+        private void weeklyRadioButton_CheckedChanged(object sender, EventArgs e)
+        {
+            datePicker.Format = DateTimePickerFormat.Custom;
+            datePicker.CustomFormat = "d. MMMM yyyy";
+        }
+
+        private void monthlyRadioButton_CheckedChanged(object sender, EventArgs e)
+        {
+            datePicker.Format = DateTimePickerFormat.Custom;
+            datePicker.CustomFormat = "MMMM yyyy";
+        }
     }
 }

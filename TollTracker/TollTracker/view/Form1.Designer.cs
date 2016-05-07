@@ -32,7 +32,6 @@
             this.vehicleTrackingPage = new System.Windows.Forms.TabPage();
             this.vehiclePicker = new System.Windows.Forms.ListBox();
             this.vehicleTollPage = new System.Windows.Forms.TabPage();
-            this.monthCalendar1 = new System.Windows.Forms.MonthCalendar();
             this.groupBox1 = new System.Windows.Forms.GroupBox();
             this.monthlyRadioButton = new System.Windows.Forms.RadioButton();
             this.weeklyRadioButton = new System.Windows.Forms.RadioButton();
@@ -51,6 +50,7 @@
             this.listView1 = new System.Windows.Forms.ListView();
             this.columnHeader1 = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.label2 = new System.Windows.Forms.Label();
+            this.datePicker = new System.Windows.Forms.DateTimePicker();
             this.reportProperties.SuspendLayout();
             this.vehicleTrackingPage.SuspendLayout();
             this.vehicleTollPage.SuspendLayout();
@@ -92,7 +92,7 @@
             // 
             // vehicleTollPage
             // 
-            this.vehicleTollPage.Controls.Add(this.monthCalendar1);
+            this.vehicleTollPage.Controls.Add(this.datePicker);
             this.vehicleTollPage.Controls.Add(this.groupBox1);
             this.vehicleTollPage.Controls.Add(this.vehiclePicker2);
             this.vehicleTollPage.Location = new System.Drawing.Point(4, 22);
@@ -102,12 +102,6 @@
             this.vehicleTollPage.TabIndex = 1;
             this.vehicleTollPage.Text = "Vehicle Toll";
             this.vehicleTollPage.UseVisualStyleBackColor = true;
-            // 
-            // monthCalendar1
-            // 
-            this.monthCalendar1.Location = new System.Drawing.Point(156, 107);
-            this.monthCalendar1.Name = "monthCalendar1";
-            this.monthCalendar1.TabIndex = 7;
             // 
             // groupBox1
             // 
@@ -130,6 +124,7 @@
             this.monthlyRadioButton.TabStop = true;
             this.monthlyRadioButton.Text = "Monthly Report";
             this.monthlyRadioButton.UseVisualStyleBackColor = true;
+            this.monthlyRadioButton.CheckedChanged += new System.EventHandler(this.monthlyRadioButton_CheckedChanged);
             // 
             // weeklyRadioButton
             // 
@@ -140,6 +135,7 @@
             this.weeklyRadioButton.TabIndex = 6;
             this.weeklyRadioButton.Text = "Weekly Report";
             this.weeklyRadioButton.UseVisualStyleBackColor = true;
+            this.weeklyRadioButton.CheckedChanged += new System.EventHandler(this.weeklyRadioButton_CheckedChanged);
             // 
             // dailyRadioButton
             // 
@@ -152,6 +148,7 @@
             this.dailyRadioButton.TabStop = true;
             this.dailyRadioButton.Text = "Daily Report";
             this.dailyRadioButton.UseVisualStyleBackColor = true;
+            this.dailyRadioButton.CheckedChanged += new System.EventHandler(this.dailyRadioButton_CheckedChanged);
             // 
             // vehiclePicker2
             // 
@@ -264,6 +261,14 @@
             this.label2.Size = new System.Drawing.Size(0, 13);
             this.label2.TabIndex = 2;
             // 
+            // datePicker
+            // 
+            this.datePicker.CustomFormat = "dd. MM. yyyy";
+            this.datePicker.Location = new System.Drawing.Point(150, 116);
+            this.datePicker.Name = "datePicker";
+            this.datePicker.Size = new System.Drawing.Size(135, 20);
+            this.datePicker.TabIndex = 10;
+            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -305,7 +310,6 @@
         private System.Windows.Forms.TabPage vehicleTollPage;
         private System.Windows.Forms.ListBox vehiclePicker;
         private System.Windows.Forms.ListBox vehiclePicker2;
-        private System.Windows.Forms.MonthCalendar monthCalendar1;
         private System.Windows.Forms.GroupBox groupBox1;
         private System.Windows.Forms.RadioButton monthlyRadioButton;
         private System.Windows.Forms.RadioButton weeklyRadioButton;
@@ -319,6 +323,7 @@
         private System.Windows.Forms.ListView listView1;
         private System.Windows.Forms.ColumnHeader columnHeader1;
         private System.Windows.Forms.Label label2;
+        private System.Windows.Forms.DateTimePicker datePicker;
     }
 }
 
