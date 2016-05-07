@@ -18,7 +18,7 @@ namespace TollTracker.model
         private const string port = "5432";
         private const string database = "TollTracker";
         private const string uid = "postgres";
-        private const string password = "poklop";
+        private const string password = "postgres";
         protected NpgsqlConnection connection = new NpgsqlConnection("Server=" + server + ";Port=" + port + ";User Id=" + uid + ";Password=" + password + ";Database=" + database + ";");
 
         /// <summary>

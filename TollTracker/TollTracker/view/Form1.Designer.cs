@@ -44,21 +44,19 @@
             this.gatePicker = new System.Windows.Forms.ListBox();
             this.importButton = new System.Windows.Forms.Button();
             this.executeButton = new System.Windows.Forms.Button();
-            this.resultsGridView = new System.Windows.Forms.DataGridView();
             this.exportButton = new System.Windows.Forms.Button();
             this.openFileDialog = new System.Windows.Forms.OpenFileDialog();
             this.saveFileDialog = new System.Windows.Forms.SaveFileDialog();
+            this.label1 = new System.Windows.Forms.Label();
+            this.listView1 = new System.Windows.Forms.ListView();
+            this.columnHeader1 = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
+            this.label2 = new System.Windows.Forms.Label();
             this.reportProperties.SuspendLayout();
             this.vehicelTrackingPage.SuspendLayout();
             this.vehiceTollPage.SuspendLayout();
             this.groupBox1.SuspendLayout();
             this.tollSummaryPage.SuspendLayout();
             this.gatereportPage.SuspendLayout();
-            ((System.ComponentModel.ISupportInitialize)(this.resultsGridView)).BeginInit();
-            this.label1 = new System.Windows.Forms.Label();
-            this.listView1 = new System.Windows.Forms.ListView();
-            this.columnHeader1 = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
-            this.label2 = new System.Windows.Forms.Label();
             this.SuspendLayout();
             // 
             // reportProperties
@@ -83,7 +81,6 @@
             this.vehicelTrackingPage.TabIndex = 0;
             this.vehicelTrackingPage.Text = "Vehicle Tracking";
             this.vehicelTrackingPage.UseVisualStyleBackColor = true;
-            this.vehicelTrackingPage.Click += new System.EventHandler(this.tabPage1_Click);
             // 
             // vehiclePicker
             // 
@@ -92,7 +89,6 @@
             this.vehiclePicker.Name = "vehiclePicker";
             this.vehiclePicker.Size = new System.Drawing.Size(306, 95);
             this.vehiclePicker.TabIndex = 0;
-            this.vehiclePicker.SelectedIndexChanged += new System.EventHandler(this.vehicleChooser_SelectedIndexChanged);
             // 
             // vehiceTollPage
             // 
@@ -222,17 +218,6 @@
             this.executeButton.UseVisualStyleBackColor = true;
             this.executeButton.Click += new System.EventHandler(this.executeButton_Click);
             // 
-            // resultsGridView
-            // 
-            this.resultsGridView.AllowUserToAddRows = false;
-            this.resultsGridView.AllowUserToDeleteRows = false;
-            this.resultsGridView.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
-            this.resultsGridView.Location = new System.Drawing.Point(341, 12);
-            this.resultsGridView.Name = "resultsGridView";
-            this.resultsGridView.ReadOnly = true;
-            this.resultsGridView.Size = new System.Drawing.Size(313, 330);
-            this.resultsGridView.TabIndex = 9;
-            // 
             // exportButton
             // 
             this.exportButton.Location = new System.Drawing.Point(220, 319);
@@ -250,9 +235,9 @@
             // label1
             // 
             this.label1.AutoSize = true;
-            this.label1.Location = new System.Drawing.Point(65, 35);
+            this.label1.Location = new System.Drawing.Point(9, 375);
             this.label1.Name = "label1";
-            this.label1.Size = new System.Drawing.Size(46, 17);
+            this.label1.Size = new System.Drawing.Size(35, 13);
             this.label1.TabIndex = 0;
             this.label1.Text = "label1";
             // 
@@ -261,9 +246,9 @@
             this.listView1.Columns.AddRange(new System.Windows.Forms.ColumnHeader[] {
             this.columnHeader1});
             this.listView1.LabelWrap = false;
-            this.listView1.Location = new System.Drawing.Point(50, 85);
+            this.listView1.Location = new System.Drawing.Point(338, 28);
             this.listView1.Name = "listView1";
-            this.listView1.Size = new System.Drawing.Size(644, 337);
+            this.listView1.Size = new System.Drawing.Size(408, 337);
             this.listView1.TabIndex = 1;
             this.listView1.UseCompatibleStateImageBehavior = false;
             this.listView1.View = System.Windows.Forms.View.Details;
@@ -275,9 +260,9 @@
             // label2
             // 
             this.label2.AutoSize = true;
-            this.label2.Location = new System.Drawing.Point(807, 35);
+            this.label2.Location = new System.Drawing.Point(338, 12);
             this.label2.Name = "label2";
-            this.label2.Size = new System.Drawing.Size(46, 17);
+            this.label2.Size = new System.Drawing.Size(35, 13);
             this.label2.TabIndex = 2;
             this.label2.Text = "label2";
             // 
@@ -285,19 +270,18 @@
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(665, 350);
+            this.ClientSize = new System.Drawing.Size(761, 393);
             this.Controls.Add(this.exportButton);
-            this.Controls.Add(this.resultsGridView);
             this.Controls.Add(this.executeButton);
             this.Controls.Add(this.importButton);
             this.Controls.Add(this.reportProperties);
-            this.Margin = new System.Windows.Forms.Padding(2);
-            this.ClientSize = new System.Drawing.Size(1157, 480);
             this.Controls.Add(this.label2);
             this.Controls.Add(this.listView1);
             this.Controls.Add(this.label1);
+            this.Margin = new System.Windows.Forms.Padding(2);
             this.Name = "Form1";
-            this.Text = "TollTracker";
+            this.Text = "Form1";
+            this.Shown += new System.EventHandler(this.Form1_Shown);
             this.reportProperties.ResumeLayout(false);
             this.vehicelTrackingPage.ResumeLayout(false);
             this.vehiceTollPage.ResumeLayout(false);
@@ -306,9 +290,6 @@
             this.tollSummaryPage.ResumeLayout(false);
             this.tollSummaryPage.PerformLayout();
             this.gatereportPage.ResumeLayout(false);
-            ((System.ComponentModel.ISupportInitialize)(this.resultsGridView)).EndInit();
-            this.Text = "Form1";
-            this.Shown += new System.EventHandler(this.Form1_Shown);
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -322,7 +303,6 @@
         private System.Windows.Forms.TabPage gatereportPage;
         private System.Windows.Forms.Button importButton;
         private System.Windows.Forms.Button executeButton;
-        private System.Windows.Forms.DataGridView resultsGridView;
         private System.Windows.Forms.Button exportButton;
         private System.Windows.Forms.TabPage vehiceTollPage;
         private System.Windows.Forms.ListBox vehiclePicker;

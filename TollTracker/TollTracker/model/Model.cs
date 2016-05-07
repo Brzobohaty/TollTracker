@@ -101,7 +101,7 @@ namespace TollTracker.model
         /// <returns>průjezdy aut zvolenou mýtnou branou</returns>
         internal bool getGateReport(int gateId)
         {
-
+            return true;
         }
 
         /// <summary>
@@ -110,7 +110,7 @@ namespace TollTracker.model
         /// <returns>obnosy vybraných peněz</returns>
         internal bool getTollsSummary()
         {
-
+            return true;
         }
 
         /// <summary>
@@ -123,7 +123,7 @@ namespace TollTracker.model
         /// <returns>obnosy vybraných peněz</returns>
         internal bool getVehicleToll(String spz, DateTime from, DateTime to)
         {
-
+            return true;
         }
 
         /// <summary>
@@ -133,7 +133,7 @@ namespace TollTracker.model
         /// <returns>seznam pozic a časů, kde se vozidlo pohybovalo</returns>
         internal bool getVehicleTrackingData(String spz)
         {
-
+            return true;
         }
 
         /****************************************************************PRIVATE*******************************************************/
