@@ -28,6 +28,7 @@ namespace TollTracker
             if (openFileDialog.ShowDialog() == DialogResult.OK)
             {
                 model.readFile(openFileDialog.FileName, printFileError, printOneTollError, showNumberOfProcessedTolls);
+                initializeReportProperties(sender, e);
             }
         }
 
@@ -59,10 +60,16 @@ namespace TollTracker
 
         private void initializeReportProperties(object sender, EventArgs e)
         {
-            //TODO inicializovat vehiclePicker, vehiclePicker2, gatePicker
-           
+            foreach (String vehicle in model.getAllVehicles()) 
+            {
+                vehiclePicker.Items.Add(vehicle);
+                vehiclePicker2.Items.Add(vehicle);
+            }
+            foreach (String gate in model.getAllGates())
+            {
+                gatePicker.Items.Add(gate);
+            }
         }
-
 
         public void printFileError(string text) {
             label1.Text = text;
@@ -85,7 +92,7 @@ namespace TollTracker
 
         private void Form1_Shown(object sender, EventArgs e)
         {
-            initializeReportProperties(sender, e);
+            
         }
     }
 }

@@ -99,7 +99,7 @@ namespace TollTracker.model
         /// </summary>
         /// <param name="gateId">id mýtné brány</param>
         /// <returns>průjezdy aut zvolenou mýtnou branou</returns>
-        internal bool getGateReport(int gateId)
+        public bool getGateReport(int gateId)
         {
             return true;
         }
@@ -108,7 +108,7 @@ namespace TollTracker.model
         /// Získá z databáze informace o sumě vybraných peněz pro každý druh vozidla
         /// </summary>
         /// <returns>obnosy vybraných peněz</returns>
-        internal bool getTollsSummary()
+        public bool getTollsSummary()
         {
             return true;
         }
@@ -121,7 +121,7 @@ namespace TollTracker.model
         /// /// <param name="from">termín od kdy</param>
         /// /// <param name="to">termín do kdy</param>
         /// <returns>obnosy vybraných peněz</returns>
-        internal bool getVehicleToll(String spz, DateTime from, DateTime to)
+        public bool getVehicleToll(String spz, DateTime from, DateTime to)
         {
             return true;
         }
@@ -131,9 +131,82 @@ namespace TollTracker.model
         /// </summary>
         /// <param name="spz">id mýtné brány</param>
         /// <returns>seznam pozic a časů, kde se vozidlo pohybovalo</returns>
-        internal bool getVehicleTrackingData(String spz)
+        public bool getVehicleTrackingData(String spz)
         {
             return true;
+        }
+
+        /// <summary>
+        /// Získá z databáze všechna vozidla
+        /// </summary>
+        /// <returns>List obsahující spz všech aut</returns>
+        public List<String> getAllVehicles()
+        {
+            List<String> queryResult = new List<string>();
+            if (openConnection())
+            {
+                try
+                {
+                    string query = "SELECT spz FROM car";
+                    NpgsqlCommand command = new NpgsqlCommand(query, connection);
+                    NpgsqlDataReader dr = command.ExecuteReader();
+
+                    while (dr.Read())
+                    {
+                        queryResult.Add(dr[0].ToString());
+                    }
+                    return queryResult;
+                }
+                catch (Exception ex)
+                {
+                    errMes = ex.Message;
+                    return queryResult;
+                }
+                finally
+                {
+                    closeConnection();
+                }
+            } else
+            {
+                return queryResult;
+            } 
+        }
+
+        /// <summary>
+        /// Získá z databáze všechny brány
+        /// </summary>
+        /// <returns>List všech mýtných bran</returns>
+        public List<String> getAllGates()
+        {
+            List<String> queryResult = new List<string>();
+            if (openConnection())
+            {
+                try
+                {
+                    string query = "SELECT id FROM toll_gate UNION SELECT CAST(id as text) FROM gps_gate";
+                    NpgsqlCommand command = new NpgsqlCommand(query, connection);
+                    NpgsqlDataReader dr = command.ExecuteReader();
+
+                    while (dr.Read())
+                    {
+                        queryResult.Add(dr[0].ToString());
+                    }
+                    return queryResult;
+                }
+                catch (Exception ex)
+                {
+                    errMes = ex.Message;
+                    return queryResult;
+                }
+                finally
+                {
+                    closeConnection();
+                }
+            }
+            else
+            {
+                return queryResult;
+            }
         }
 
         /****************************************************************PRIVATE*******************************************************/
