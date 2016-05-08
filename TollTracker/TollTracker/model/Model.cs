@@ -95,6 +95,19 @@ namespace TollTracker.model
         }
 
         /// <summary>
+        /// Přečte daný soubor a nahraje jeho obsah do databáze
+        /// </summary>
+        /// <param name="pathToFile">cesta k souboru</param>
+        /// <param name="errorCallback">funkce, která bude zavolána v případě chyby při čtení souboru a parsování souboru (jako parametr má funkce chybovou hlášku)</param>
+        /// <param name="oneTollErrorCallback">funkce, která bude zavolána v případě chyby při parsování jednoho konkrétního mýta (jako parametr má funkce chybovou hlášku a pořadí mýta)</param>
+        /// <param name="showNumberOfProcessedTolls">funkce, která bude zavolána v případě zpracování jednoho mýta (jako parametr má funkce počet zpracovaných mýt)</param>
+        /// <returns>false pokud nastala při čtení a parsování fatalní chyba, která zamezila načtení všech záznamů</returns>
+        public bool exportTollGateReport(string pathToFile, Action<string> errorCallback, Action<int, string> oneTollErrorCallback, Action<int> showNumberOfProcessedTolls)
+        {
+            return true;
+        }
+
+        /// <summary>
         /// Získá z databáze informace o zvolené bráně záznam o mýtném s mýtnou branou
         /// </summary>
         /// <param name="gateId">id mýtné brány</param>

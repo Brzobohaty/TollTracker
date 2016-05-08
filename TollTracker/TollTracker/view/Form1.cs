@@ -34,37 +34,79 @@ namespace TollTracker
 
         private void exportButton_Click(object sender, EventArgs e)
         {
-            //TODO je třeba dodělat funkci pro export dat
+            Action<String> saveFileError = (String s) => Console.WriteLine("Error: file saving - ", s);
+
+            if (saveFileDialog.ShowDialog() == DialogResult.OK)
+            {
+                String filename = saveFileDialog.FileName;
+                initializeReportProperties(sender, e);
+            }
+            String report = reportProperties.SelectedTab.Name;
+            switch (report)
+            {
+                case "vehicleTrackingPage":
+
+                    break;
+                case "vehicleTollPage":
+
+                    break;
+                case "tollsSummaryPage":
+
+                    break;
+                case "gateReportPage":
+
+                    break;
+                default:
+                    break;
+            }
         }
 
         private void executeButton_Click(object sender, EventArgs e)
         {
             listView1.Items.Clear();
-            List<List<String>> results;
+            clearFileError();
+            List<List<String>> results = new List<List<String>>();
             String report = reportProperties.SelectedTab.Name;
             switch (report)
             {
                 case "vehicleTrackingPage":
-                    prepareVehicleTrackingReportListView();
-                    results = model.getVehicleTrackingData(vehiclePicker.GetItemText(vehiclePicker.SelectedItem));
+                    if (vehiclePicker.SelectedItem != null)
+                    {
+                        prepareVehicleTrackingReportListView();
+                        results = model.getVehicleTrackingData(vehiclePicker.GetItemText(vehiclePicker.SelectedItem));
+                    } else
+                    {
+                        printFileError("Zvolte spz vozu!");
+                    }
                     break;
                 case "vehicleTollPage":
-                    prepareVehicleTollReportListView();
-                    results = model.getVehicleToll(vehiclePicker2.GetItemText(vehiclePicker2.SelectedItem), getStartDate(), getEndDate());
+                    if (vehiclePicker2.SelectedItem != null && datePicker.Value != null)
+                    {
+                        prepareVehicleTollReportListView();
+                        results = model.getVehicleToll(vehiclePicker2.GetItemText(vehiclePicker2.SelectedItem), getStartDate(), getEndDate());
+                    } else
+                    {
+                        printFileError("Zvolte spz vozu a datum!");
+                    }
                     break;
                 case "tollsSummaryPage":
                     prepareTollSummaryReportListView();
                     results = model.getTollsSummary();
                     break;
                 case "gateReportPage":
-                    prepareGateReportListView();
-                    results = model.getGateReport(gatePicker.GetItemText(gatePicker.SelectedItem));
+                    if (gatePicker.SelectedItem != null)
+                    {
+                        prepareGateReportListView();
+                    results = model.getGateReport(gatePicker.GetItemText(gatePicker.SelectedItem));     
+                    } else
+                            {
+                        printFileError("Zvolte id brány!");
+                    }
                     break;
                 default:
                     results = new List<List<String>>();
                     prepareDefaultListView();
-                    label1.Text = "Prosím zvolte jeden z dotazů";
-                    label1.Refresh();
+                    printFileError("Zvolte jeden z dotazů!");
                     break;
             }
             updateListView(results);
@@ -72,19 +114,25 @@ namespace TollTracker
 
         private void updateListView(List<List<string>> results)
         {
-            listView1.BeginUpdate();
-            for (int i = 0; i < results[0].Count; i++)
+            if (results.Count > 0)
             {
-                ListViewItem item = new ListViewItem(listView1.Items.Count.ToString());
-                String[] row = new String[results.Count];
-                for (int j = 0; j < results.Count; j++)
+                listView1.BeginUpdate();
+                for (int i = 0; i < results[0].Count; i++)
                 {
-                    row[j] = results[j][i];
+                    ListViewItem item = new ListViewItem(listView1.Items.Count.ToString());
+                    String[] row = new String[results.Count];
+                    for (int j = 0; j < results.Count; j++)
+                    {
+                        row[j] = results[j][i];
+                    }
+                    item.SubItems.AddRange(row.ToArray());
+                    listView1.Items.Add(item);
                 }
-                item.SubItems.AddRange(row.ToArray());
-                listView1.Items.Add(item);
+                listView1.EndUpdate();
+            } else
+            {
+                printFileError("Chyba dat při pokusu o jejich vypsání");
             }
-            listView1.EndUpdate();
         }
 
         private void prepareDefaultListView()
@@ -178,6 +226,11 @@ namespace TollTracker
 
         public void printFileError(string text) {
             label1.Text = text;
+        }
+
+        public void clearFileError()
+        {
+            label1.Text = "";
         }
 
         public void printOneTollError(int tollOrderNumber, string text) {
