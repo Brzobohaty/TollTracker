@@ -99,10 +99,10 @@ namespace TollTracker.model
         /// </summary>
         /// <param name="gateId">id mýtné brány</param>
         /// <returns>průjezdy aut zvolenou mýtnou branou</returns>
-        public List<String> getGateReport(String gateId)
+        public List<List<String>> getGateReport(String gateId)
         {
             StringBuilder builder = new StringBuilder();
-            builder.Append("SELECT concat_ws(', ', car.spz, car.type, whenn) FROM toll ");
+            builder.Append("SELECT car.spz, car.type, whenn FROM toll ");
             builder.Append("JOIN car ON toll.car_spz = car.spz ");
             builder.Append("WHERE((toll.gps_gate_id IS NOT NULL) AND(toll.gps_gate_id = '");
             builder.Append(gateId);
@@ -117,14 +117,14 @@ namespace TollTracker.model
         /// Získá z databáze informace o sumě vybraných peněz pro každý druh vozidla
         /// </summary>
         /// <returns>obnosy vybraných peněz</returns>
-        public List<String> getTollsSummary()
+        public List<List<String>> getTollsSummary()
         {
             StringBuilder builder = new StringBuilder();
-            builder.Append("SELECT 'Auta pod 3.5t: ' || SUM(price) || ',- CZK' FROM toll ");
+            builder.Append("SELECT 'Auta pod 3.5t' AS type, SUM(price) FROM toll ");
             builder.Append("LEFT JOIN car ON car.spz = toll.car_spz ");
             builder.Append("WHERE car.type = 'below 3.5t' ");
             builder.Append("UNION ");
-            builder.Append("SELECT 'Auta nad 3.5t: ' || SUM(price) || ',- CZK' FROM toll ");
+            builder.Append("SELECT 'Auta nad 3.5t' AS type,SUM(price) FROM toll ");
             builder.Append("LEFT JOIN car ON car.spz = toll.car_spz ");
             builder.Append("WHERE car.type = 'over 3.5t'");
 
@@ -139,11 +139,10 @@ namespace TollTracker.model
         /// /// <param name="from">termín od kdy</param>
         /// /// <param name="to">termín do kdy</param>
         /// <returns>obnosy vybraných peněz</returns>
-        public List<String> getVehicleToll(String spz, DateTime from, DateTime to)
+        public List<List<String>> getVehicleToll(String spz, DateTime from, DateTime to)
         {
             StringBuilder builder = new StringBuilder();
-            builder.Append("SELECT COALESCE(r1.type, r2.type) || ': ' || SUM(price) || ',- CZK' FROM toll ");
-            //builder.Append("SELECT COALESCE(r1.type, r2.type) AS type, SUM(price) AS s FROM toll");
+            builder.Append("SELECT COALESCE(r1.type, r2.type) AS type, SUM(price) AS s FROM toll ");
             builder.Append("LEFT JOIN gps_gate ON gps_gate.id = toll.gps_gate_id ");
             builder.Append("LEFT JOIN road r1 ON gps_gate.road_number = r1.number ");
             builder.Append("LEFT JOIN toll_gate ON toll_gate.id = toll.toll_gate_id ");
@@ -165,10 +164,10 @@ namespace TollTracker.model
         /// </summary>
         /// <param name="spz">id mýtné brány</param>
         /// <returns>seznam pozic a časů, kde se vozidlo pohybovalo</returns>
-        public List<String> getVehicleTrackingData(String spz)
+        public List<List<String>> getVehicleTrackingData(String spz)
         {
             StringBuilder builder = new StringBuilder();
-            builder.Append("SELECT concat_ws(', ', whenn::text, 'silnice: ' || gps_gate.road_number::text, toll_gate.road_number::text, price::text || ',- CZK') FROM toll ");
+            builder.Append("SELECT whenn, gps_gate.road_number, toll_gate.road_number, price FROM toll ");
             builder.Append("LEFT JOIN gps_gate ON gps_gate.id = toll.gps_gate_id ");
             builder.Append("LEFT JOIN toll_gate ON toll_gate.id = toll.toll_gate_id ");
             builder.Append("WHERE (toll.gps_gate_id IS NOT NULL  OR toll.toll_gate_id IS NOT NULL) ");
@@ -183,7 +182,7 @@ namespace TollTracker.model
         /// Získá z databáze všechna vozidla
         /// </summary>
         /// <returns>List obsahující spz všech aut</returns>
-        public List<String> getAllVehicles()
+        public List<List<String>> getAllVehicles()
         {
             return getSelectResults("SELECT spz FROM car");
         }
@@ -192,7 +191,7 @@ namespace TollTracker.model
         /// Získá z databáze všechny brány
         /// </summary>
         /// <returns>List všech mýtných bran</returns>
-        public List<String> getAllGates()
+        public List<List<String>> getAllGates()
         {
             return getSelectResults("SELECT id FROM toll_gate UNION SELECT CAST(id as text) FROM gps_gate");
         }
@@ -717,26 +716,35 @@ namespace TollTracker.model
         /// </summary>
         /// <param name="query">SQL dotaz</param>
         /// <returns>List obsahující výsledky dotazu</returns>
-        private List<String> getSelectResults(String query)
+        private List<List<String>> getSelectResults(String query)
         {
-            List<String> queryResult = new List<string>();
             if (openConnection())
             {
                 try
                 {
                     NpgsqlCommand command = new NpgsqlCommand(query, connection);
                     NpgsqlDataReader dr = command.ExecuteReader();
+                    List<List<String>> queryResult = new List<List<string>>();
+
+                    for (int i = 0; i < dr.VisibleFieldCount; i++)
+                    {
+                        queryResult.Add(new List<string>());
+                    }
 
                     while (dr.Read())
                     {
-                        queryResult.Add(dr[0].ToString());
+                        for (int i = 0; i < dr.VisibleFieldCount; i++)
+                        {
+                            queryResult[i].Add(dr[i].ToString());
+                        }
+                        
                     }
                     return queryResult;
                 }
                 catch (Exception ex)
                 {
                     errMes = ex.Message;
-                    return queryResult;
+                    return null;
                 }
                 finally
                 {
@@ -745,7 +753,7 @@ namespace TollTracker.model
             }
             else
             {
-                return queryResult;
+                return null;
             }
         }
     }

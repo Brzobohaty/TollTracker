@@ -32,6 +32,7 @@
             this.vehicleTrackingPage = new System.Windows.Forms.TabPage();
             this.vehiclePicker = new System.Windows.Forms.ListBox();
             this.vehicleTollPage = new System.Windows.Forms.TabPage();
+            this.datePicker = new System.Windows.Forms.DateTimePicker();
             this.groupBox = new System.Windows.Forms.GroupBox();
             this.monthlyRadioButton = new System.Windows.Forms.RadioButton();
             this.weeklyRadioButton = new System.Windows.Forms.RadioButton();
@@ -50,7 +51,6 @@
             this.listView1 = new System.Windows.Forms.ListView();
             this.columnHeader1 = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.label2 = new System.Windows.Forms.Label();
-            this.datePicker = new System.Windows.Forms.DateTimePicker();
             this.reportProperties.SuspendLayout();
             this.vehicleTrackingPage.SuspendLayout();
             this.vehicleTollPage.SuspendLayout();
@@ -102,6 +102,14 @@
             this.vehicleTollPage.TabIndex = 1;
             this.vehicleTollPage.Text = "Vehicle Toll";
             this.vehicleTollPage.UseVisualStyleBackColor = true;
+            // 
+            // datePicker
+            // 
+            this.datePicker.CustomFormat = "dd. MM. yyyy";
+            this.datePicker.Location = new System.Drawing.Point(150, 116);
+            this.datePicker.Name = "datePicker";
+            this.datePicker.Size = new System.Drawing.Size(135, 20);
+            this.datePicker.TabIndex = 10;
             // 
             // groupBox
             // 
@@ -260,14 +268,6 @@
             this.label2.Name = "label2";
             this.label2.Size = new System.Drawing.Size(0, 13);
             this.label2.TabIndex = 2;
-            // 
-            // datePicker
-            // 
-            this.datePicker.CustomFormat = "dd. MM. yyyy";
-            this.datePicker.Location = new System.Drawing.Point(150, 116);
-            this.datePicker.Name = "datePicker";
-            this.datePicker.Size = new System.Drawing.Size(135, 20);
-            this.datePicker.TabIndex = 10;
             // 
             // Form1
             // 

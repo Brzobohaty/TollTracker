@@ -40,30 +40,64 @@ namespace TollTracker
         private void executeButton_Click(object sender, EventArgs e)
         {
             listView1.Items.Clear();
-            List<String> results = new List<String>();
+            List<List<String>> results;
             String report = reportProperties.SelectedTab.Name;
             switch (report)
             {
                 case "vehicleTrackingPage":
+                    listView1.Columns.Clear();
+                    listView1.Columns.Add("");
+                    listView1.Columns.Add("Čas");
+                    listView1.Columns.Add("Silnice - GPS");
+                    listView1.Columns.Add("Silnice - brána");
+                    listView1.Columns.Add("Mýtné");
                     results = model.getVehicleTrackingData(vehiclePicker.GetItemText(vehiclePicker.SelectedItem));
                     break;
                 case "vehicleTollPage":
+                    listView1.Columns.Clear();
+                    listView1.Columns.Add("");
+                    listView1.Columns.Add("Typ silnice");
+                    listView1.Columns.Add("Mýtné");
                     results = model.getVehicleToll(vehiclePicker2.GetItemText(vehiclePicker2.SelectedItem), getStartDate(), getEndDate());
                     break;
                 case "tollsSummaryPage":
+                    listView1.Columns.Clear();
+                    listView1.Columns.Add("");
+                    listView1.Columns.Add("Typ vozidel");
+                    listView1.Columns.Add("Mýtné");
                     results = model.getTollsSummary();
                     break;
                 case "gateReportPage":
+                    listView1.Columns.Clear();
+                    listView1.Columns.Add("");
+                    listView1.Columns.Add("Spz");
+                    listView1.Columns.Add("Typ vozidla");
+                    listView1.Columns.Add("Čas");
                     results = model.getGateReport(gatePicker.GetItemText(gatePicker.SelectedItem));
                     break;
                 default:
+                    results = new List<List<String>>();
+                    listView1.Columns.Clear();
+                    listView1.Columns.Add("");
+                    listView1.Columns.Add("Data");
                     listView1.Items.Add("Prosím zvolte jeden z dotazů");
-                break;
+                    break;
             }
-            foreach (String result in results)
+
+            listView1.BeginUpdate();
+
+            for (int i = 0; i < results[0].Count; i++)
             {
-                listView1.Items.Add(result);
+                ListViewItem item = new ListViewItem(listView1.Items.Count.ToString());
+                String[] row = new String[results.Count];
+                for (int j = 0; j < results.Count; j++)
+                {
+                    row[j] = results[j][i];
+                }
+                item.SubItems.AddRange(row.ToArray());
+                listView1.Items.Add(item);
             }
+            listView1.EndUpdate();
         }
 
         private DateTime getStartDate()
@@ -103,12 +137,12 @@ namespace TollTracker
 
         private void initializeReportProperties(object sender, EventArgs e)
         {
-            foreach (String vehicle in model.getAllVehicles()) 
+            foreach (String vehicle in model.getAllVehicles()[0]) 
             {
                 vehiclePicker.Items.Add(vehicle);
                 vehiclePicker2.Items.Add(vehicle);
             }
-            foreach (String gate in model.getAllGates())
+            foreach (String gate in model.getAllGates()[0])
             {
                 gatePicker.Items.Add(gate);
             }
