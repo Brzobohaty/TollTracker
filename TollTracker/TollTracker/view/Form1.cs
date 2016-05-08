@@ -45,47 +45,34 @@ namespace TollTracker
             switch (report)
             {
                 case "vehicleTrackingPage":
-                    listView1.Columns.Clear();
-                    listView1.Columns.Add("");
-                    listView1.Columns.Add("Čas");
-                    listView1.Columns.Add("Silnice - GPS");
-                    listView1.Columns.Add("Silnice - brána");
-                    listView1.Columns.Add("Mýtné");
+                    prepareVehicleTrackingReportListView();
                     results = model.getVehicleTrackingData(vehiclePicker.GetItemText(vehiclePicker.SelectedItem));
                     break;
                 case "vehicleTollPage":
-                    listView1.Columns.Clear();
-                    listView1.Columns.Add("");
-                    listView1.Columns.Add("Typ silnice");
-                    listView1.Columns.Add("Mýtné");
+                    prepareVehicleTollReportListView();
                     results = model.getVehicleToll(vehiclePicker2.GetItemText(vehiclePicker2.SelectedItem), getStartDate(), getEndDate());
                     break;
                 case "tollsSummaryPage":
-                    listView1.Columns.Clear();
-                    listView1.Columns.Add("");
-                    listView1.Columns.Add("Typ vozidel");
-                    listView1.Columns.Add("Mýtné");
+                    prepareTollSummaryReportListView();
                     results = model.getTollsSummary();
                     break;
                 case "gateReportPage":
-                    listView1.Columns.Clear();
-                    listView1.Columns.Add("");
-                    listView1.Columns.Add("Spz");
-                    listView1.Columns.Add("Typ vozidla");
-                    listView1.Columns.Add("Čas");
+                    prepareGateReportListView();
                     results = model.getGateReport(gatePicker.GetItemText(gatePicker.SelectedItem));
                     break;
                 default:
                     results = new List<List<String>>();
-                    listView1.Columns.Clear();
-                    listView1.Columns.Add("");
-                    listView1.Columns.Add("Data");
-                    listView1.Items.Add("Prosím zvolte jeden z dotazů");
+                    prepareDefaultListView();
+                    label1.Text = "Prosím zvolte jeden z dotazů";
+                    label1.Refresh();
                     break;
             }
+            updateListView(results);
+        }
 
+        private void updateListView(List<List<string>> results)
+        {
             listView1.BeginUpdate();
-
             for (int i = 0; i < results[0].Count; i++)
             {
                 ListViewItem item = new ListViewItem(listView1.Items.Count.ToString());
@@ -100,19 +87,60 @@ namespace TollTracker
             listView1.EndUpdate();
         }
 
+        private void prepareDefaultListView()
+        {
+            listView1.Columns.Clear();
+            listView1.Columns.Add("");
+        }
+
+        private void prepareGateReportListView()
+        {
+            listView1.Columns.Clear();
+            listView1.Columns.Add("");
+            listView1.Columns.Add("Spz");
+            listView1.Columns.Add("Typ vozidla");
+            listView1.Columns.Add("Čas");
+        }
+
+        private void prepareTollSummaryReportListView()
+        {
+            listView1.Columns.Clear();
+            listView1.Columns.Add("");
+            listView1.Columns.Add("Typ vozidel");
+            listView1.Columns.Add("Mýtné");
+        }
+
+        private void prepareVehicleTollReportListView()
+        {
+            listView1.Columns.Clear();
+            listView1.Columns.Add("");
+            listView1.Columns.Add("Typ silnice");
+            listView1.Columns.Add("Mýtné");
+        }
+
+        private void prepareVehicleTrackingReportListView()
+        {
+            listView1.Columns.Clear();
+            listView1.Columns.Add("");
+            listView1.Columns.Add("Čas");
+            listView1.Columns.Add("Silnice - GPS");
+            listView1.Columns.Add("Silnice - brána");
+            listView1.Columns.Add("Mýtné");
+        }
+
         private DateTime getStartDate()
         {
             if (dailyRadioButton.Checked)
             {
-                return datePicker.Value.Date;
+                return TimeUtils.getStartOfDay(datePicker.Value);
             }
             else if (weeklyRadioButton.Checked)
             {
-                return datePicker.Value.Date.AddDays(-6);
+                return TimeUtils.getStartOfWeek(datePicker.Value);
             }
             else if (monthlyRadioButton.Checked)
             {
-                return new DateTime(datePicker.Value.Year, datePicker.Value.Month, 1);
+                return TimeUtils.getStartOfMonth(datePicker.Value);
             }
             else return new DateTime().AddDays(-1);
 
@@ -122,15 +150,15 @@ namespace TollTracker
         {
             if (dailyRadioButton.Checked)
             {
-                return datePicker.Value.Date.AddDays(1);
+                return TimeUtils.getEndOfDay(datePicker.Value);
             }
             else if (weeklyRadioButton.Checked)
             {
-                return datePicker.Value.Date.AddDays(1);
+                return TimeUtils.getEndOfWeek(datePicker.Value);
             }
             else if (monthlyRadioButton.Checked)
             {
-                return new DateTime(datePicker.Value.Year, datePicker.Value.Month, 1).AddMonths(1).AddDays(-1);
+                return TimeUtils.getEndOfMonth(datePicker.Value);
             }
             else return new DateTime();
         }
@@ -167,27 +195,22 @@ namespace TollTracker
             label2.Refresh();
         }
 
-        private void Form1_Shown(object sender, EventArgs e)
-        {
-            
-        }
-
         private void dailyRadioButton_CheckedChanged(object sender, EventArgs e)
         {
             datePicker.Format = DateTimePickerFormat.Custom;
-            datePicker.CustomFormat = "d. MMMM yyyy";
+            datePicker.CustomFormat = TimeUtils.DAY_FORMAT;
         }
 
         private void weeklyRadioButton_CheckedChanged(object sender, EventArgs e)
         {
             datePicker.Format = DateTimePickerFormat.Custom;
-            datePicker.CustomFormat = "d. MMMM yyyy";
+            datePicker.CustomFormat = TimeUtils.DAY_FORMAT;
         }
 
         private void monthlyRadioButton_CheckedChanged(object sender, EventArgs e)
         {
             datePicker.Format = DateTimePickerFormat.Custom;
-            datePicker.CustomFormat = "MMMM yyyy";
+            datePicker.CustomFormat = TimeUtils.MONTH_FORMAT;
         }
     }
 }

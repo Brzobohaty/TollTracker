@@ -284,7 +284,6 @@
             this.Margin = new System.Windows.Forms.Padding(2);
             this.Name = "Form1";
             this.Text = "TollTracker";
-            this.Shown += new System.EventHandler(this.Form1_Shown);
             this.reportProperties.ResumeLayout(false);
             this.vehicleTrackingPage.ResumeLayout(false);
             this.vehicleTollPage.ResumeLayout(false);
