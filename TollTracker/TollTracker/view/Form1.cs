@@ -48,7 +48,7 @@ namespace TollTracker
                     results = model.getVehicleTrackingData(vehiclePicker.GetItemText(vehiclePicker.SelectedItem));
                     break;
                 case "vehicleTollPage":
-                    //m.getVehicleToll(vehicle,from,to);
+                    results = model.getVehicleToll(vehiclePicker2.GetItemText(vehiclePicker2.SelectedItem), getStartDate(), getEndDate());
                     break;
                 case "tollsSummaryPage":
                     results = model.getTollsSummary();
@@ -64,6 +64,41 @@ namespace TollTracker
             {
                 listView1.Items.Add(result);
             }
+        }
+
+        private DateTime getStartDate()
+        {
+            if (dailyRadioButton.Checked)
+            {
+                return datePicker.Value.Date;
+            }
+            else if (weeklyRadioButton.Checked)
+            {
+                return datePicker.Value.Date.AddDays(-6);
+            }
+            else if (monthlyRadioButton.Checked)
+            {
+                return new DateTime(datePicker.Value.Year, datePicker.Value.Month, 1);
+            }
+            else return new DateTime().AddDays(-1);
+
+        }
+
+        private DateTime getEndDate()
+        {
+            if (dailyRadioButton.Checked)
+            {
+                return datePicker.Value.Date.AddDays(1);
+            }
+            else if (weeklyRadioButton.Checked)
+            {
+                return datePicker.Value.Date.AddDays(1);
+            }
+            else if (monthlyRadioButton.Checked)
+            {
+                return new DateTime(datePicker.Value.Year, datePicker.Value.Month, 1).AddMonths(1).AddDays(-1);
+            }
+            else return new DateTime();
         }
 
         private void initializeReportProperties(object sender, EventArgs e)

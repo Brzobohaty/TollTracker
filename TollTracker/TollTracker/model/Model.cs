@@ -141,7 +141,23 @@ namespace TollTracker.model
         /// <returns>obnosy vybraných peněz</returns>
         public List<String> getVehicleToll(String spz, DateTime from, DateTime to)
         {
-            return getSelectResults("SELECT spz FROM car");
+            StringBuilder builder = new StringBuilder();
+            builder.Append("SELECT COALESCE(r1.type, r2.type) || ': ' || SUM(price) || ',- CZK' FROM toll ");
+            //builder.Append("SELECT COALESCE(r1.type, r2.type) AS type, SUM(price) AS s FROM toll");
+            builder.Append("LEFT JOIN gps_gate ON gps_gate.id = toll.gps_gate_id ");
+            builder.Append("LEFT JOIN road r1 ON gps_gate.road_number = r1.number ");
+            builder.Append("LEFT JOIN toll_gate ON toll_gate.id = toll.toll_gate_id ");
+            builder.Append("LEFT JOIN road r2 ON toll_gate.road_number = r2.number ");
+            builder.Append("WHERE car_spz = '");
+            builder.Append(spz);
+            builder.Append("' AND ((toll.gps_gate_id IS NOT NULL) OR(toll.toll_gate_id IS NOT NULL)) ");
+            builder.Append("AND whenn >= '");
+            builder.Append(new NpgsqlTypes.NpgsqlDateTime(from));
+            builder.Append("' AND whenn < '");
+            builder.Append(new NpgsqlTypes.NpgsqlDateTime(to));
+            builder.Append("' GROUP BY COALESCE(r1.type, r2.type)");
+            
+            return getSelectResults(builder.ToString());
         }
 
         /// <summary>

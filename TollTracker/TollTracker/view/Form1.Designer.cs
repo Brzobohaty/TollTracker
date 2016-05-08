@@ -32,7 +32,7 @@
             this.vehicleTrackingPage = new System.Windows.Forms.TabPage();
             this.vehiclePicker = new System.Windows.Forms.ListBox();
             this.vehicleTollPage = new System.Windows.Forms.TabPage();
-            this.groupBox1 = new System.Windows.Forms.GroupBox();
+            this.groupBox = new System.Windows.Forms.GroupBox();
             this.monthlyRadioButton = new System.Windows.Forms.RadioButton();
             this.weeklyRadioButton = new System.Windows.Forms.RadioButton();
             this.dailyRadioButton = new System.Windows.Forms.RadioButton();
@@ -54,7 +54,7 @@
             this.reportProperties.SuspendLayout();
             this.vehicleTrackingPage.SuspendLayout();
             this.vehicleTollPage.SuspendLayout();
-            this.groupBox1.SuspendLayout();
+            this.groupBox.SuspendLayout();
             this.tollsSummaryPage.SuspendLayout();
             this.gateReportPage.SuspendLayout();
             this.SuspendLayout();
@@ -93,7 +93,7 @@
             // vehicleTollPage
             // 
             this.vehicleTollPage.Controls.Add(this.datePicker);
-            this.vehicleTollPage.Controls.Add(this.groupBox1);
+            this.vehicleTollPage.Controls.Add(this.groupBox);
             this.vehicleTollPage.Controls.Add(this.vehiclePicker2);
             this.vehicleTollPage.Location = new System.Drawing.Point(4, 22);
             this.vehicleTollPage.Name = "vehicleTollPage";
@@ -103,16 +103,16 @@
             this.vehicleTollPage.Text = "Vehicle Toll";
             this.vehicleTollPage.UseVisualStyleBackColor = true;
             // 
-            // groupBox1
+            // groupBox
             // 
-            this.groupBox1.Controls.Add(this.monthlyRadioButton);
-            this.groupBox1.Controls.Add(this.weeklyRadioButton);
-            this.groupBox1.Controls.Add(this.dailyRadioButton);
-            this.groupBox1.Location = new System.Drawing.Point(3, 101);
-            this.groupBox1.Name = "groupBox1";
-            this.groupBox1.Size = new System.Drawing.Size(141, 168);
-            this.groupBox1.TabIndex = 5;
-            this.groupBox1.TabStop = false;
+            this.groupBox.Controls.Add(this.monthlyRadioButton);
+            this.groupBox.Controls.Add(this.weeklyRadioButton);
+            this.groupBox.Controls.Add(this.dailyRadioButton);
+            this.groupBox.Location = new System.Drawing.Point(3, 101);
+            this.groupBox.Name = "groupBox";
+            this.groupBox.Size = new System.Drawing.Size(141, 168);
+            this.groupBox.TabIndex = 5;
+            this.groupBox.TabStop = false;
             // 
             // monthlyRadioButton
             // 
@@ -288,8 +288,8 @@
             this.reportProperties.ResumeLayout(false);
             this.vehicleTrackingPage.ResumeLayout(false);
             this.vehicleTollPage.ResumeLayout(false);
-            this.groupBox1.ResumeLayout(false);
-            this.groupBox1.PerformLayout();
+            this.groupBox.ResumeLayout(false);
+            this.groupBox.PerformLayout();
             this.tollsSummaryPage.ResumeLayout(false);
             this.tollsSummaryPage.PerformLayout();
             this.gateReportPage.ResumeLayout(false);
@@ -310,7 +310,7 @@
         private System.Windows.Forms.TabPage vehicleTollPage;
         private System.Windows.Forms.ListBox vehiclePicker;
         private System.Windows.Forms.ListBox vehiclePicker2;
-        private System.Windows.Forms.GroupBox groupBox1;
+        private System.Windows.Forms.GroupBox groupBox;
         private System.Windows.Forms.RadioButton monthlyRadioButton;
         private System.Windows.Forms.RadioButton weeklyRadioButton;
         private System.Windows.Forms.RadioButton dailyRadioButton;
