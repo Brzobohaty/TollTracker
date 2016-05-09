@@ -6,6 +6,8 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Windows.Forms;
+using System.Xml;
 
 namespace TollTracker.model
 {
@@ -95,33 +97,26 @@ namespace TollTracker.model
         }
 
         /// <summary>
-        /// Přečte daný soubor a nahraje jeho obsah do databáze
-        /// </summary>
-        /// <param name="pathToFile">cesta k souboru</param>
-        /// <param name="errorCallback">funkce, která bude zavolána v případě chyby při čtení souboru a parsování souboru (jako parametr má funkce chybovou hlášku)</param>
-        /// <param name="oneTollErrorCallback">funkce, která bude zavolána v případě chyby při parsování jednoho konkrétního mýta (jako parametr má funkce chybovou hlášku a pořadí mýta)</param>
-        /// <param name="showNumberOfProcessedTolls">funkce, která bude zavolána v případě zpracování jednoho mýta (jako parametr má funkce počet zpracovaných mýt)</param>
-        /// <returns>false pokud nastala při čtení a parsování fatalní chyba, která zamezila načtení všech záznamů</returns>
-        public bool exportTollGateReport(string pathToFile, Action<string> errorCallback, Action<int, string> oneTollErrorCallback, Action<int> showNumberOfProcessedTolls)
-        {
-            return true;
-        }
-
-        /// <summary>
         /// Získá z databáze informace o zvolené bráně záznam o mýtném s mýtnou branou
         /// </summary>
         /// <param name="gateId">id mýtné brány</param>
         /// <returns>průjezdy aut zvolenou mýtnou branou</returns>
         public List<List<String>> getGateReport(String gateId)
         {
+            int outvalue;
             StringBuilder builder = new StringBuilder();
             builder.Append("SELECT car.spz, car.type, whenn FROM toll ");
             builder.Append("JOIN car ON toll.car_spz = car.spz ");
-            builder.Append("WHERE((toll.gps_gate_id IS NOT NULL) AND(toll.gps_gate_id = '");
-            builder.Append(gateId);
-            builder.Append("')) OR((toll.toll_gate_id IS NOT NULL) AND(toll.toll_gate_id = '");
-            builder.Append(gateId);
-            builder.Append("'))");
+            if (Int32.TryParse(gateId, out outvalue)) {
+                builder.Append("WHERE((toll.toll_gate_id IS NOT NULL) AND (toll.toll_gate_id = '");
+                builder.Append(gateId);
+                builder.Append("')) OR((toll.gps_gate_id IS NOT NULL) AND (toll.gps_gate_id = '");
+            } else
+            {
+                builder.Append("WHERE((toll.toll_gate_id IS NOT NULL) AND (toll.toll_gate_id = '");
+                builder.Append(gateId);
+                builder.Append("'))");
+            }        
 
             return getSelectResults(builder.ToString());
         }
@@ -207,6 +202,50 @@ namespace TollTracker.model
         public List<List<String>> getAllGates()
         {
             return getSelectResults("SELECT id FROM toll_gate UNION SELECT CAST(id as text) FROM gps_gate");
+        }
+
+        /// <summary>
+        /// Exportuje výsledky vehicleTrackingReportu do XML
+        /// </summary>
+        /// <param name="pathToFile">cesta k souboru</param>
+        /// <param name="data">data určená k exportu</param>
+        public void exportVehicleTrackingReportToXML(string pathToFile, ListView.ListViewItemCollection data)
+        {
+            XMLParser parser = new XMLParser();
+            parser.exportVehicleTrackingReport(pathToFile, data);
+        }
+
+        /// <summary>
+        /// Exportuje výsledky vehicleTollReportu do XML
+        /// </summary>
+        /// <param name="pathToFile">cesta k souboru</param>
+        /// <param name="data">data určená k exportu</param>
+        public void exportVehicleTollReportToXML(string pathToFile, ListView.ListViewItemCollection data)
+        {
+            XMLParser parser = new XMLParser();
+            parser.exportVehicleTollReport(pathToFile, data);
+        }
+
+        /// <summary>
+        /// Exportuje výsledky tollsSummaryReportu do XML
+        /// </summary>
+        /// <param name="pathToFile">cesta k souboru</param>
+        /// <param name="data">data určená k exportu</param>
+        public void exportTollsSummaryReportToXML(string pathToFile, ListView.ListViewItemCollection data)
+        {
+            XMLParser parser = new XMLParser();
+            parser.exportTollsSummaryReport(pathToFile, data);
+        }
+
+        /// <summary>
+        /// Exportuje výsledky gateReportu do XML
+        /// </summary>
+        /// <param name="pathToFile">cesta k souboru</param>
+        /// <param name="data">data určená k exportu</param>
+        public void exportGateReportToXML(string pathToFile, ListView.ListViewItemCollection data)
+        {
+            XMLParser parser = new XMLParser();
+            parser.exportGateReport(pathToFile, data);
         }
 
         /****************************************************************PRIVATE*******************************************************/

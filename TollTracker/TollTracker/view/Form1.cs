@@ -39,25 +39,25 @@ namespace TollTracker
             if (saveFileDialog.ShowDialog() == DialogResult.OK)
             {
                 String filename = saveFileDialog.FileName;
-                initializeReportProperties(sender, e);
-            }
-            String report = reportProperties.SelectedTab.Name;
-            switch (report)
-            {
-                case "vehicleTrackingPage":
+                String report = reportProperties.SelectedTab.Name;
 
-                    break;
-                case "vehicleTollPage":
-
-                    break;
-                case "tollsSummaryPage":
-
-                    break;
-                case "gateReportPage":
-
-                    break;
-                default:
-                    break;
+                switch (report)
+                {
+                    case "vehicleTrackingPage":
+                        model.exportVehicleTrackingReportToXML(filename, listView1.Items);
+                        break;
+                    case "vehicleTollPage":
+                        model.exportVehicleTollReportToXML(filename, listView1.Items);
+                        break;
+                    case "tollsSummaryPage":
+                        model.exportTollsSummaryReportToXML(filename, listView1.Items);
+                        break;
+                    case "gateReportPage":
+                        model.exportGateReportToXML(filename, listView1.Items);
+                        break;
+                    default:
+                        break;
+                }
             }
         }
 
@@ -97,7 +97,7 @@ namespace TollTracker
                     if (gatePicker.SelectedItem != null)
                     {
                         prepareGateReportListView();
-                    results = model.getGateReport(gatePicker.GetItemText(gatePicker.SelectedItem));     
+                        results = model.getGateReport(gatePicker.GetItemText(gatePicker.SelectedItem));     
                     } else
                             {
                         printFileError("Zvolte id brány!");
@@ -114,7 +114,7 @@ namespace TollTracker
 
         private void updateListView(List<List<string>> results)
         {
-            if (results.Count > 0)
+            if (results != null && results.Count > 0)
             {
                 listView1.BeginUpdate();
                 for (int i = 0; i < results[0].Count; i++)
