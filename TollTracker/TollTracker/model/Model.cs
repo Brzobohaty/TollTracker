@@ -6,6 +6,8 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Windows.Forms;
+using System.Xml;
 
 namespace TollTracker.model
 {
@@ -92,6 +94,158 @@ namespace TollTracker.model
                 errorCallback("Nepodařilo se připojit k databázi");
                 return false;
             }
+        }
+
+        /// <summary>
+        /// Získá z databáze informace o zvolené bráně záznam o mýtném s mýtnou branou
+        /// </summary>
+        /// <param name="gateId">id mýtné brány</param>
+        /// <returns>průjezdy aut zvolenou mýtnou branou</returns>
+        public List<List<String>> getGateReport(String gateId)
+        {
+            int outvalue;
+            StringBuilder builder = new StringBuilder();
+            builder.Append("SELECT car.spz, car.type, whenn FROM toll ");
+            builder.Append("JOIN car ON toll.car_spz = car.spz ");
+            if (Int32.TryParse(gateId, out outvalue)) {
+                builder.Append("WHERE((toll.toll_gate_id IS NOT NULL) AND (toll.toll_gate_id = '");
+                builder.Append(gateId);
+                builder.Append("')) OR((toll.gps_gate_id IS NOT NULL) AND (toll.gps_gate_id = '");
+            } else
+            {
+                builder.Append("WHERE((toll.toll_gate_id IS NOT NULL) AND (toll.toll_gate_id = '");
+                builder.Append(gateId);
+                builder.Append("'))");
+            }        
+
+            return getSelectResults(builder.ToString());
+        }
+
+        /// <summary>
+        /// Získá z databáze informace o sumě vybraných peněz pro každý druh vozidla
+        /// </summary>
+        /// <returns>obnosy vybraných peněz</returns>
+        public List<List<String>> getTollsSummary()
+        {
+            StringBuilder builder = new StringBuilder();
+            builder.Append("SELECT 'Auta pod 3.5t' AS type, SUM(price) FROM toll ");
+            builder.Append("LEFT JOIN car ON car.spz = toll.car_spz ");
+            builder.Append("WHERE car.type = 'below 3.5t' ");
+            builder.Append("UNION ");
+            builder.Append("SELECT 'Auta nad 3.5t' AS type,SUM(price) FROM toll ");
+            builder.Append("LEFT JOIN car ON car.spz = toll.car_spz ");
+            builder.Append("WHERE car.type = 'over 3.5t'");
+
+            return getSelectResults(builder.ToString());
+        }
+
+        /// <summary>
+        /// Získá z databáze informace o penězích zaplacených daným vozidlem za zvolenou dobu
+        /// pro každý druh silnice
+        /// </summary>
+        /// /// <param name="spz">spz vozidla</param>
+        /// /// <param name="from">termín od kdy</param>
+        /// /// <param name="to">termín do kdy</param>
+        /// <returns>obnosy vybraných peněz</returns>
+        public List<List<String>> getVehicleToll(String spz, DateTime from, DateTime to)
+        {
+            StringBuilder builder = new StringBuilder();
+            builder.Append("SELECT COALESCE(r1.type, r2.type) AS type, SUM(price) AS s FROM toll ");
+            builder.Append("LEFT JOIN gps_gate ON gps_gate.id = toll.gps_gate_id ");
+            builder.Append("LEFT JOIN road r1 ON gps_gate.road_number = r1.number ");
+            builder.Append("LEFT JOIN toll_gate ON toll_gate.id = toll.toll_gate_id ");
+            builder.Append("LEFT JOIN road r2 ON toll_gate.road_number = r2.number ");
+            builder.Append("WHERE car_spz = '");
+            builder.Append(spz);
+            builder.Append("' AND ((toll.gps_gate_id IS NOT NULL) OR(toll.toll_gate_id IS NOT NULL)) ");
+            builder.Append("AND whenn >= '");
+            builder.Append(new NpgsqlTypes.NpgsqlDateTime(from));
+            builder.Append("' AND whenn < '");
+            builder.Append(new NpgsqlTypes.NpgsqlDateTime(to));
+            builder.Append("' GROUP BY COALESCE(r1.type, r2.type)");
+            
+            return getSelectResults(builder.ToString());
+        }
+
+        /// <summary>
+        /// Získá z databáze informace o pohybu vozidla
+        /// </summary>
+        /// <param name="spz">id mýtné brány</param>
+        /// <returns>seznam pozic a časů, kde se vozidlo pohybovalo</returns>
+        public List<List<String>> getVehicleTrackingData(String spz)
+        {
+            StringBuilder builder = new StringBuilder();
+            builder.Append("SELECT whenn, gps_gate.road_number, toll_gate.road_number, price FROM toll ");
+            builder.Append("LEFT JOIN gps_gate ON gps_gate.id = toll.gps_gate_id ");
+            builder.Append("LEFT JOIN toll_gate ON toll_gate.id = toll.toll_gate_id ");
+            builder.Append("WHERE (toll.gps_gate_id IS NOT NULL  OR toll.toll_gate_id IS NOT NULL) ");
+            builder.Append("AND car_spz = '");
+            builder.Append(spz);
+            builder.Append("' ORDER BY whenn");
+
+            return getSelectResults(builder.ToString());
+        }
+
+        /// <summary>
+        /// Získá z databáze všechna vozidla
+        /// </summary>
+        /// <returns>List obsahující spz všech aut</returns>
+        public List<List<String>> getAllVehicles()
+        {
+            return getSelectResults("SELECT spz FROM car");
+        }
+
+        /// <summary>
+        /// Získá z databáze všechny brány
+        /// </summary>
+        /// <returns>List všech mýtných bran</returns>
+        public List<List<String>> getAllGates()
+        {
+            return getSelectResults("SELECT id FROM toll_gate UNION SELECT CAST(id as text) FROM gps_gate");
+        }
+
+        /// <summary>
+        /// Exportuje výsledky vehicleTrackingReportu do XML
+        /// </summary>
+        /// <param name="pathToFile">cesta k souboru</param>
+        /// <param name="data">data určená k exportu</param>
+        public void exportVehicleTrackingReportToXML(string pathToFile, ListView.ListViewItemCollection data)
+        {
+            XMLParser parser = new XMLParser();
+            parser.exportVehicleTrackingReport(pathToFile, data);
+        }
+
+        /// <summary>
+        /// Exportuje výsledky vehicleTollReportu do XML
+        /// </summary>
+        /// <param name="pathToFile">cesta k souboru</param>
+        /// <param name="data">data určená k exportu</param>
+        public void exportVehicleTollReportToXML(string pathToFile, ListView.ListViewItemCollection data)
+        {
+            XMLParser parser = new XMLParser();
+            parser.exportVehicleTollReport(pathToFile, data);
+        }
+
+        /// <summary>
+        /// Exportuje výsledky tollsSummaryReportu do XML
+        /// </summary>
+        /// <param name="pathToFile">cesta k souboru</param>
+        /// <param name="data">data určená k exportu</param>
+        public void exportTollsSummaryReportToXML(string pathToFile, ListView.ListViewItemCollection data)
+        {
+            XMLParser parser = new XMLParser();
+            parser.exportTollsSummaryReport(pathToFile, data);
+        }
+
+        /// <summary>
+        /// Exportuje výsledky gateReportu do XML
+        /// </summary>
+        /// <param name="pathToFile">cesta k souboru</param>
+        /// <param name="data">data určená k exportu</param>
+        public void exportGateReportToXML(string pathToFile, ListView.ListViewItemCollection data)
+        {
+            XMLParser parser = new XMLParser();
+            parser.exportGateReport(pathToFile, data);
         }
 
         /****************************************************************PRIVATE*******************************************************/
@@ -607,6 +761,52 @@ namespace TollTracker.model
             }
             dr.Close();
             return typeMap;
+        }
+
+        /// <summary>
+        /// Získá z databáze výsledky pro zadaný dotaz
+        /// </summary>
+        /// <param name="query">SQL dotaz</param>
+        /// <returns>List obsahující výsledky dotazu</returns>
+        private List<List<String>> getSelectResults(String query)
+        {
+            if (openConnection())
+            {
+                try
+                {
+                    NpgsqlCommand command = new NpgsqlCommand(query, connection);
+                    NpgsqlDataReader dr = command.ExecuteReader();
+                    List<List<String>> queryResult = new List<List<string>>();
+
+                    for (int i = 0; i < dr.VisibleFieldCount; i++)
+                    {
+                        queryResult.Add(new List<string>());
+                    }
+
+                    while (dr.Read())
+                    {
+                        for (int i = 0; i < dr.VisibleFieldCount; i++)
+                        {
+                            queryResult[i].Add(dr[i].ToString());
+                        }
+                        
+                    }
+                    return queryResult;
+                }
+                catch (Exception ex)
+                {
+                    errMes = ex.Message;
+                    return null;
+                }
+                finally
+                {
+                    closeConnection();
+                }
+            }
+            else
+            {
+                return null;
+            }
         }
     }
 }
