@@ -73,7 +73,7 @@ namespace TollTracker.model
                 errorCallback("Nastala chyba při čtení souboru: " + ex.Message);
                 return false;
             }
-            return false;
+            return true;
         }
 
 

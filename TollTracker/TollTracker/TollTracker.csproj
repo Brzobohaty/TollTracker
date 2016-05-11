@@ -57,7 +57,6 @@
   <ItemGroup>
     <Compile Include="model\JSONParser.cs" />
     <Compile Include="model\TimeUtils.cs" />
-    <Compile Include="model\XMLExporter.cs" />
     <Compile Include="model\XMLParser.cs" />
     <Compile Include="view\Form1.cs">
       <SubType>Form</SubType>

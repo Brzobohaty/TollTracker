@@ -16,14 +16,16 @@ namespace TollTracker.model
     /// </summary>
     public class Model : DBConnector
     {
-        private HashSet<string> gateTypeSet; //množina typů bran
-        private HashSet<string> carTypeSet; //množina typů aut
-        private HashSet<string> roadTypeSet; //množina typů silnic
-        private enum ValidType { validNonPresent, nonValid, validPresent }; //výčtový typ pro návratové hodnoty metod pro kontrolu typů { validní typ pro nový prvek; nevalidní typ; validní typ pro prvek, který už je v databázi} 
         private Action<int, string> oneTollErrorCallback; //funkce, která bude zavolána v případě chyby při parsování jednoho záznamu mýta (jako parametry má funkce pořadí mýta a chybovou hlášku)
-        private String errMes; //poslední chybová hláška ke které došlo při práci s databází
+        private string errMes; //poslední chybová hláška ke které došlo při práci s databází
         private Action<int> showNumberOfProcessedTolls; //funkce, která bude zavolána v případě zpracování jednoho mýta (jako parametr má funkce počet zpracovaných mýt)
-
+        private int count = 0; //počet právě zpracovaných záznamů při vkládání do databáze v jednom bundlu
+        private List<string> roads = new List<string>(); //seznam připravených hodnot silnic pro vložení do datbáze
+        private List<string> cars = new List<string>(); //seznam připravených hodnot aut pro vložení do datbáze
+        private List<string> gates = new List<string>(); //seznam připravených hodnot bran pro vložení do datbáze
+        private List<string> gpsGates = new List<string>(); //seznam připravených hodnot gps bran pro vložení do datbáze
+        private List<string> tolls = new List<string>(); //seznam připravených hodnot mýt pro vložení do datbáze
+        Action<string> errorCallback; //callback v případě závažné chyby
 
         public Model()
         {
@@ -31,9 +33,6 @@ namespace TollTracker.model
             {
                 deleteAll();
                 inicializeDB();
-                gateTypeSet = getTypeMap("gate_type");
-                carTypeSet = getTypeMap("car_type");
-                roadTypeSet = getTypeMap("road_type");
                 closeConnection();
             }
         }
@@ -48,6 +47,7 @@ namespace TollTracker.model
         /// <returns>false pokud nastala při čtení a parsování fatalní chyba, která zamezila načtení všech záznamů</returns>
         public bool readFile(string pathToFile, Action<string> errorCallback, Action<int, string> oneTollErrorCallback, Action<int> showNumberOfProcessedTolls)
         {
+            this.errorCallback = errorCallback;
             this.oneTollErrorCallback = oneTollErrorCallback;
             this.showNumberOfProcessedTolls = showNumberOfProcessedTolls;
             if (openConnection())
@@ -107,16 +107,18 @@ namespace TollTracker.model
             StringBuilder builder = new StringBuilder();
             builder.Append("SELECT car.spz, car.type, whenn FROM toll ");
             builder.Append("JOIN car ON toll.car_spz = car.spz ");
-            if (Int32.TryParse(gateId, out outvalue)) {
+            if (Int32.TryParse(gateId, out outvalue))
+            {
                 builder.Append("WHERE((toll.toll_gate_id IS NOT NULL) AND (toll.toll_gate_id = '");
                 builder.Append(gateId);
                 builder.Append("')) OR((toll.gps_gate_id IS NOT NULL) AND (toll.gps_gate_id = '");
-            } else
+            }
+            else
             {
                 builder.Append("WHERE((toll.toll_gate_id IS NOT NULL) AND (toll.toll_gate_id = '");
                 builder.Append(gateId);
                 builder.Append("'))");
-            }        
+            }
 
             return getSelectResults(builder.ToString());
         }
@@ -163,7 +165,7 @@ namespace TollTracker.model
             builder.Append("' AND whenn < '");
             builder.Append(new NpgsqlTypes.NpgsqlDateTime(to));
             builder.Append("' GROUP BY COALESCE(r1.type, r2.type)");
-            
+
             return getSelectResults(builder.ToString());
         }
 
@@ -212,7 +214,7 @@ namespace TollTracker.model
         public void exportVehicleTrackingReportToXML(string pathToFile, ListView.ListViewItemCollection data)
         {
             XMLParser parser = new XMLParser();
-            parser.exportVehicleTrackingReport(pathToFile, data);
+            //parser.exportVehicleTrackingReport(pathToFile, data);
         }
 
         /// <summary>
@@ -223,7 +225,7 @@ namespace TollTracker.model
         public void exportVehicleTollReportToXML(string pathToFile, ListView.ListViewItemCollection data)
         {
             XMLParser parser = new XMLParser();
-            parser.exportVehicleTollReport(pathToFile, data);
+            //parser.exportVehicleTollReport(pathToFile, data);
         }
 
         /// <summary>
@@ -234,7 +236,7 @@ namespace TollTracker.model
         public void exportTollsSummaryReportToXML(string pathToFile, ListView.ListViewItemCollection data)
         {
             XMLParser parser = new XMLParser();
-            parser.exportTollsSummaryReport(pathToFile, data);
+            //parser.exportTollsSummaryReport(pathToFile, data);
         }
 
         /// <summary>
@@ -245,7 +247,7 @@ namespace TollTracker.model
         public void exportGateReportToXML(string pathToFile, ListView.ListViewItemCollection data)
         {
             XMLParser parser = new XMLParser();
-            parser.exportGateReport(pathToFile, data);
+            //parser.exportGateReport(pathToFile, data);
         }
 
         /****************************************************************PRIVATE*******************************************************/
@@ -283,12 +285,6 @@ namespace TollTracker.model
         /// </summary>
         private void inicializeDB()
         {
-            gateTypeSet = getTypeMap("gate_type");
-            if (gateTypeSet.Any())
-            {
-                return;
-            }
-
             insertType("car_type", "over 3.5t");
             insertType("car_type", "below 3.5t");
             insertType("gate_type", "large");
@@ -305,9 +301,13 @@ namespace TollTracker.model
         /// <param name="typeName">hodnota typu</param>
         private void insertType(string tableName, string typeName)
         {
-            string query = "INSERT INTO " + tableName + " (name) VALUES('" + typeName + "')";
-            NpgsqlCommand command = new NpgsqlCommand(query, connection);
-            command.ExecuteNonQuery();
+            try
+            {
+                string query = "INSERT INTO " + tableName + " (name) VALUES('" + typeName + "')";
+                NpgsqlCommand command = new NpgsqlCommand(query, connection);
+                command.ExecuteNonQuery();
+            }
+            catch (Exception ex) { }
         }
 
         /// <summary>
@@ -323,6 +323,7 @@ namespace TollTracker.model
             {
                 return false;
             }
+            insertGPSBundle();
             return true;
         }
 
@@ -339,6 +340,7 @@ namespace TollTracker.model
             {
                 return false;
             }
+            insertGateBundle();
             return true;
         }
 
@@ -375,78 +377,19 @@ namespace TollTracker.model
         /// <returns>true pokud je záznam validní</returns>
         private void insertTollWithTollGate(int number, DateTime when, double price, string roadNumber, string roadType, string carType, string SPZ, string gateId, string gateType)
         {
-            var insertGateX = false;
-            var insertRoadX = false;
-            var insertCarX = false;
-
-            showNumberOfProcessedTolls(number);
-
-            switch (isGateTypeValid(gateId, gateType))
+            if (count > 5000)
             {
-                case ValidType.nonValid:
-                    oneTollErrorCallback(number, errMes);
-                    return;
-                case ValidType.validPresent:
-                    break;
-                case ValidType.validNonPresent:
-                    insertGateX = true;
-                    break;
+                showNumberOfProcessedTolls(number);
+                insertGateBundle();
+                count = 0;
             }
-
-            switch (isRoadTypeValid(roadNumber, roadType))
+            else
             {
-                case ValidType.nonValid:
-                    oneTollErrorCallback(number, errMes);
-                    return;
-                case ValidType.validPresent:
-                    break;
-                case ValidType.validNonPresent:
-                    insertRoadX = true;
-                    break;
-            }
-
-            switch (isCarTypeValid(SPZ, carType))
-            {
-                case ValidType.nonValid:
-                    oneTollErrorCallback(number, errMes);
-                    return;
-                case ValidType.validPresent:
-                    break;
-                case ValidType.validNonPresent:
-                    insertCarX = true;
-                    break;
-            }
-
-            if (insertRoadX)
-            {
-                if (!insertRoad(roadNumber, roadType))
-                {
-                    oneTollErrorCallback(number, " (vkládání silnice do databáze) " + errMes);
-                    return;
-                }
-            }
-
-            if (insertCarX)
-            {
-                if (!insertCar(SPZ, carType))
-                {
-                    oneTollErrorCallback(number, " (vkládání auta do databáze) " + errMes);
-                    return;
-                }
-            }
-            if (insertGateX)
-            {
-                if (!insertGate(gateId, gateType, roadNumber))
-                {
-                    oneTollErrorCallback(number, " (vkládání brány do databáze) " + errMes);
-                    return;
-                }
-            }
-
-            if (!insertToll(when, price, SPZ, gateId, -1))
-            {
-                oneTollErrorCallback(number, " (vkládání mýta do databáze) " + errMes);
-                return;
+                count++;
+                roads.Add("('" + roadNumber + "', '" + roadType + "')");
+                cars.Add("('" + SPZ + "', '" + carType + "')");
+                gates.Add("('" + gateId + "', '" + gateType + "', '" + roadNumber + "')");
+                tolls.Add("('" + when + "', '" + price.ToString(CultureInfo.CreateSpecificCulture("en-us")) + "', '" + SPZ + "', '" + gateId + "')");
             }
         }
 
@@ -464,132 +407,113 @@ namespace TollTracker.model
         /// <param name="GPSAccuracy">přesnost GPS souřadnic, kde bylo mýto zaznamenáno</param>
         private void insertTollWithGPS(int number, DateTime when, double price, string roadNumber, string roadType, string carType, string SPZ, double GPSLongitude, double GPSLatitude, int GPSAccuracy)
         {
-            var insertRoadX = false;
-            var insertCarX = false;
-
-            showNumberOfProcessedTolls(number);
-
-            switch (isRoadTypeValid(roadNumber, roadType))
+            if (count > 5000)
             {
-                case ValidType.nonValid:
+                showNumberOfProcessedTolls(number);
+                insertGateBundle();
+                count = 0;
+            }
+            else
+            {
+                count++;
+                roads.Add("('" + roadNumber + "', '" + roadType + "')");
+                cars.Add("('" + SPZ + "', '" + carType + "')");
+                int GPSGateId = insertGPSGate(GPSLongitude, GPSLatitude, GPSAccuracy, roadNumber);
+                if (GPSGateId == -1) {
                     oneTollErrorCallback(number, errMes);
                     return;
-                case ValidType.validPresent:
-                    break;
-                case ValidType.validNonPresent:
-                    insertRoadX = true;
-                    break;
-            }
-
-            switch (isCarTypeValid(SPZ, carType))
-            {
-                case ValidType.nonValid:
-                    oneTollErrorCallback(number, errMes);
-                    return;
-                case ValidType.validPresent:
-                    break;
-                case ValidType.validNonPresent:
-                    insertCarX = true;
-                    break;
-            }
-
-            if (insertRoadX)
-            {
-                if (!insertRoad(roadNumber, roadType))
-                {
-                    oneTollErrorCallback(number, " (vkládání silnice do databáze) " + errMes);
-                    return;
                 }
+                tolls.Add("('" + when + "', '" + price.ToString(CultureInfo.CreateSpecificCulture("en-us")) + "', '" + SPZ + "', '" + GPSGateId + "')");
             }
+        }
 
-            if (insertCarX)
+        /// <summary>
+        /// Vloží do databáze aktuálně ozparsovaný pakl všech záznamů. (s branou)
+        /// </summary>
+        private void insertGateBundle()
+        {
+            insertRoads(roads);
+            insertCars(cars);
+            insertTollGates(gates);
+            insertGateTolls(tolls);
+        }
+
+        /// <summary>
+        /// Vloží do databáze aktuálně ozparsovaný pakl všech záznamů. (s GPS)
+        /// </summary>
+        private void insertGPSBundle()
+        {
+            insertRoads(roads);
+            insertCars(cars);
+            insertGPSTolls(tolls);
+        }
+
+        protected override void postgresNotification(object sender, NpgsqlNotificationEventArgs e)
+        {
+            oneTollErrorCallback(0, e.AdditionalInformation);
+        }
+
+        /// <summary>
+        /// Vloží do databáze silnice s danými parametry
+        /// </summary>
+        /// <param name="roads">list stringů obsahujících připravené hodnoty jednotlivých silnic</param>
+        private void insertRoads(List<string> roads)
+        {
+            string queryInsertRoads = "INSERT INTO road (number, type) VALUES";
+            queryInsertRoads += string.Join(",", roads);
+            roads.Clear();
+            try
             {
-                if (!insertCar(SPZ, carType))
-                {
-                    oneTollErrorCallback(number, " (vkládání auta do databáze) " + errMes);
-                    return;
-                }
+                NpgsqlCommand command = new NpgsqlCommand(queryInsertRoads, connection);
+                command.ExecuteNonQuery();
             }
-
-            long GPSid = insertGPSGate(GPSLongitude, GPSLatitude, GPSAccuracy, roadNumber);
-
-            if (GPSid == -1)
+            catch (Exception ex)
             {
-                oneTollErrorCallback(number, " (vkládání GPS souřadnic do databáze) " + errMes);
+                errorCallback(ex.Message);
+            }
+        }
+
+        /// <summary>
+        /// Vloží do databáze auta s danými parametry
+        /// </summary>
+        /// <param name="cars">list stringů obsahujících připravené hodnoty jednotlivých aut</param>
+        private void insertCars(List<string> cars)
+        {
+            string queryInsertCars = "INSERT INTO car (SPZ, type) VALUES";
+            queryInsertCars += string.Join(",", cars);
+            cars.Clear();
+            try
+            {
+                NpgsqlCommand command = new NpgsqlCommand(queryInsertCars, connection);
+                command.ExecuteNonQuery();
+            }
+            catch (Exception ex)
+            {
+                errorCallback(ex.Message);
+            }
+        }
+
+        /// <summary>
+        /// Vloží do databáze mýtné brány s danými parametry
+        /// </summary>
+        /// <param name="gates">list stringů obsahujících připravené hodnoty jednotlivých bran</param>
+        private void insertTollGates(List<string> gates)
+        {
+            if (gates.Count == 0)
+            {
                 return;
             }
-
-            if (!insertToll(when, price, SPZ, "", GPSid))
-            {
-                oneTollErrorCallback(number, " (vkládání mýta do databáze) " + errMes);
-                return;
-            }
-        }
-
-        /// <summary>
-        /// Vloží do databáze silnici s danými parametry
-        /// </summary>
-        /// <param name="roadNumber">číslo silnice</param>
-        /// <param name="type">typ silnice</param>
-        /// <returns>true pokud se povedlo vložit silnici</returns>
-        private bool insertRoad(string roadNumber, string type)
-        {
+            string queryInsertGates = "INSERT INTO toll_gate (id, type, road_number) VALUES";
+            queryInsertGates += string.Join(",", gates);
+            gates.Clear();
             try
             {
-                string query = "INSERT INTO road (number, type) VALUES('" + roadNumber + "', '" + type + "')";
-                NpgsqlCommand command = new NpgsqlCommand(query, connection);
+                NpgsqlCommand command = new NpgsqlCommand(queryInsertGates, connection);
                 command.ExecuteNonQuery();
-                return true;
             }
             catch (Exception ex)
             {
-                errMes = ex.Message;
-                return false;
-            }
-        }
-
-        /// <summary>
-        /// Vloží do databáze auto s danými parametry
-        /// </summary>
-        /// <param name="SPZ">SPZ auta</param>
-        /// <param name="type">typ auta</param>
-        /// <returns>true pokud se povedlo vložit auto</returns>
-        private bool insertCar(string SPZ, string type)
-        {
-            try
-            {
-                string query = "INSERT INTO car (SPZ, type) VALUES('" + SPZ + "', '" + type + "')";
-                NpgsqlCommand command = new NpgsqlCommand(query, connection);
-                command.ExecuteNonQuery();
-                return true;
-            }
-            catch (Exception ex)
-            {
-                errMes = ex.Message;
-                return false;
-            }
-        }
-
-        /// <summary>
-        /// Vloží do databáze mýtnou bránu s danými parametry
-        /// </summary>
-        /// <param name="gateId">id brány</param>
-        /// <param name="type">typ brány</param>
-        /// <param name="road_number">číslo silnice, na které se brána nachází</param>
-        /// <returns>true pokud se povedlo vložit bránu</returns>
-        private bool insertGate(string gateId, string type, string road_number)
-        {
-            try
-            {
-                string query = "INSERT INTO toll_gate (id, type, road_number) VALUES('" + gateId + "', '" + type + "', '" + road_number + "')";
-                NpgsqlCommand command = new NpgsqlCommand(query, connection);
-                command.ExecuteNonQuery();
-                return true;
-            }
-            catch (Exception ex)
-            {
-                errMes = ex.Message;
-                return false;
+                errorCallback(ex.Message);
             }
         }
 
@@ -603,7 +527,6 @@ namespace TollTracker.model
         /// <returns>pokud se povedlo, tak vrací id a jinak -1</returns>
         private int insertGPSGate(double longitude, double latitude, int accuracy, string road_number)
         {
-            NpgsqlDataReader dr;
             try
             {
                 string query = "INSERT INTO gps_gate (longitude, latitude, accuracy, road_number) VALUES(" + longitude.ToString(CultureInfo.CreateSpecificCulture("en-us")) + ", " + latitude.ToString(CultureInfo.CreateSpecificCulture("en-us")) + ", " + accuracy + ", '" + road_number + "') RETURNING id";
@@ -618,149 +541,43 @@ namespace TollTracker.model
         }
 
         /// <summary>
-        /// Vloží do databáze mýto s danými parametry
+        /// Vloží do databáze mýta s danými parametry (s mýtnou branou)
         /// </summary>
-        /// <param name="when">kdy bylo mýto zaznamenáno</param>
-        /// <param name="price">cena mýta</param>
-        /// <param name="SPZ">SPZ auta, ke ketrému mýto patří</param>
-        /// <param name="tollGateId">id mýtné brány (-1, pokud se nejednalo o mýtnou bránu)</param>
-        /// <param name="GPSGateId">id GPS souřadnic (-1, pokud se nejednalo o mýtné s GPS souřadnicema)</param>
-        /// <returns>true pokud se povedlo vložit mýto</returns>
-        private bool insertToll(DateTime when, double price, string SPZ, string tollGateId, long GPSGateId)
+        /// <param name="tolls">list stringů obsahujících připravené hodnoty jednotlivých mýt</param>
+        private void insertGateTolls(List<string> tolls)
         {
-            string query;
-            if (tollGateId == "")
-            {
-                query = "INSERT INTO toll (whenn, price, car_spz, gps_gate_id) VALUES('" + when + "', '" + price.ToString(CultureInfo.CreateSpecificCulture("en-us")) + "', '" + SPZ + "', '" + GPSGateId + "')";
-            }
-            else {
-                query = "INSERT INTO toll (whenn, price, car_spz, toll_gate_id) VALUES('" + when + "', '" + price.ToString(CultureInfo.CreateSpecificCulture("en-us")) + "', '" + SPZ + "', '" + tollGateId + "')";
-            }
+            string queryInsertTolls = "INSERT INTO toll (whenn, price, car_spz, toll_gate_id) VALUES";
+            queryInsertTolls += string.Join(",", tolls);
+            tolls.Clear();
             try
             {
-                NpgsqlCommand command = new NpgsqlCommand(query, connection);
+                NpgsqlCommand command = new NpgsqlCommand(queryInsertTolls, connection);
                 command.ExecuteNonQuery();
-                return true;
             }
             catch (Exception ex)
             {
-                errMes = ex.Message;
-                return false;
+                errorCallback(ex.Message);
             }
         }
 
         /// <summary>
-        /// Zjistí, zda je v databázi již taková brána a pokud ano, tak jestli má stejný typ
+        /// Vloží do databáze mýta s danými parametry (s GPS branou)
         /// </summary>
-        /// <param name="tollGateId">id brány</param>
-        /// <param name="type">typ brány</param>
-        /// <returns>true pokud taková brána neexistuje nebo pokud existuje a má stejný typ (a pokud existuje takový typ)</returns>
-        private ValidType isGateTypeValid(string tollGateId, string type)
+        /// <param name="tolls">list stringů obsahujících připravené hodnoty jednotlivých mýt</param>
+        private void insertGPSTolls(List<string> tolls)
         {
-            if (!gateTypeSet.Contains(type))
-            {
-                errMes = "Neexistující typ brány: " + type;
-                return ValidType.nonValid;
-            }
-            return isTypeValid("toll_gate", "id", tollGateId, type);
-        }
-
-        /// <summary>
-        /// Zjistí, zda je v databázi již taková silnice a pokud ano, tak jestli má stejný typ
-        /// </summary>
-        /// <param name="roadNumber">číslo silnice</param>
-        /// <param name="type">typ silnice</param>
-        /// <returns>true pokud taková silnice neexistuje nebo pokud existuje a má stejný typ (a pokud existuje takový typ)</returns>
-        private ValidType isRoadTypeValid(string roadNumber, string type)
-        {
-            if (!roadTypeSet.Contains(type))
-            {
-                errMes = "Neexistující typ silnice: " + type;
-                return ValidType.nonValid;
-            }
-            return isTypeValid("road", "number", roadNumber, type);
-        }
-
-        /// <summary>
-        /// Zjistí, zda je v databázi již takové auto a pokud ano, tak jestli má stejný typ
-        /// </summary>
-        /// <param name="SPZ">SPZ auta</param>
-        /// <param name="type">typ brány</param>
-        /// <returns>ValidType</returns>
-        private ValidType isCarTypeValid(string SPZ, string type)
-        {
-            if (!carTypeSet.Contains(type))
-            {
-                errMes = "Neexistující typ auta: " + type;
-                return ValidType.nonValid;
-            }
-            return isTypeValid("car", "SPZ", SPZ, type);
-        }
-
-        /// <summary>
-        /// Zjistí, zda je typ nějakého prvku v souladu s již vloženými prvky
-        /// Respektive pokud už je prvek v databázi, tak ho najde a zeptá se, zda má daný prvek stejný typ jako chceme právě zadat. 
-        /// </summary>
-        /// <param name="table">tabulka prvku</param>
-        /// <param name="idColumnName">název primárního klíče v tabulce prvku</param>
-        /// <param name="idColumnValue">hodnota primárního klíče v tabulce prvku</param>
-        /// <param name="type">jméno typu</param>
-        /// <returns>ValidType</returns>
-        private ValidType isTypeValid(string table, string idColumnName, string idColumnValue, string type)
-        {
-            NpgsqlDataReader dr;
+            string queryInsertTolls = "INSERT INTO toll (whenn, price, car_spz, gps_gate_id) VALUES";
+            queryInsertTolls += string.Join(",", tolls);
+            tolls.Clear();
             try
             {
-                string query = "SELECT type FROM " + table + " WHERE " + idColumnName.ToLower() + " = '" + idColumnValue + "' LIMIT 1";
-                NpgsqlCommand command = new NpgsqlCommand(query, connection);
-                dr = command.ExecuteReader();
+                NpgsqlCommand command = new NpgsqlCommand(queryInsertTolls, connection);
+                command.ExecuteNonQuery();
             }
             catch (Exception ex)
             {
-                errMes = ex.Message;
-                return ValidType.nonValid;
+                errorCallback(ex.Message);
             }
-            try
-            {
-                if (dr.Read())
-                {
-                    string typeFromDb = dr["type"] + "";
-                    if (typeFromDb == type)
-                    {
-                        return ValidType.validPresent;
-                    }
-                    else {
-                        errMes = "Již je v databázi prvek s idColumnName :" + idColumnValue + ", ale má přiřazený jiný typ (" + typeFromDb + " != " + type + ") silnice.";
-                        return ValidType.nonValid;
-                    }
-                }
-                return ValidType.validNonPresent;
-            }
-            finally
-            {
-                dr.Close();
-            }
-        }
-
-        /// <summary>
-        /// Vytvoří množinu z tabulky typu
-        /// </summary>
-        /// <param name="tableName">jméno tabulky typu</param>
-        /// <returns>množina názvů typů</returns>
-        private HashSet<string> getTypeMap(string tableName)
-        {
-            HashSet<string> typeMap = new HashSet<string>();
-
-            string query = "SELECT name FROM " + tableName;
-
-            NpgsqlCommand command = new NpgsqlCommand(query, connection);
-            NpgsqlDataReader dr = command.ExecuteReader();
-            while (dr.Read())
-            {
-                typeMap.Add(dr["name"] + "");
-            }
-            dr.Close();
-            return typeMap;
         }
 
         /// <summary>
@@ -789,7 +606,7 @@ namespace TollTracker.model
                         {
                             queryResult[i].Add(dr[i].ToString());
                         }
-                        
+
                     }
                     return queryResult;
                 }

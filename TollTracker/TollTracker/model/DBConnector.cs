@@ -19,9 +19,9 @@ namespace TollTracker.model
         private const string database = "TollTracker";
         private const string uid = "postgres";
         //Ty hesla takhle uložený, nejsou úplně best practice :D
-        private const string password = "postgres";
-        //private const string password = "poklop";
-        protected NpgsqlConnection connection = new NpgsqlConnection("Server=" + server + ";Port=" + port + ";User Id=" + uid + ";Password=" + password + ";Database=" + database + ";");
+        //private const string password = "postgres";
+        private const string password = "poklop";
+        protected NpgsqlConnection connection = new NpgsqlConnection("Server=" + server + ";Port=" + port + ";User Id=" + uid + ";Password=" + password + ";Database=" + database + ";SyncNotification=true");
 
         /// <summary>
         /// Otevře připojení k databázi
@@ -32,6 +32,7 @@ namespace TollTracker.model
             try
             {
                 connection.Open();
+                startListeningNotifications();
                 return true;
             }
             catch (Exception ex)
@@ -49,6 +50,7 @@ namespace TollTracker.model
         {
             try
             {
+                stopListeningNotifications();
                 connection.Close();
                 return true;
             }
@@ -58,5 +60,23 @@ namespace TollTracker.model
                 return false;
             }
         }
+
+        private void startListeningNotifications()
+        {
+            string sql = "listen mynotification";
+            using (NpgsqlCommand command = new NpgsqlCommand(sql, connection))
+            {
+                command.ExecuteNonQuery();
+            }
+
+            connection.Notification += postgresNotification;
+        }
+
+        private void stopListeningNotifications()
+        {
+            connection.Notification -= postgresNotification;
+        }
+
+        protected abstract void postgresNotification(object sender, NpgsqlNotificationEventArgs e);
     }
 }
