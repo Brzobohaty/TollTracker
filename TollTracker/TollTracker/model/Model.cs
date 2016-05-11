@@ -214,7 +214,7 @@ namespace TollTracker.model
         public void exportVehicleTrackingReportToXML(string pathToFile, ListView.ListViewItemCollection data)
         {
             XMLParser parser = new XMLParser();
-            //parser.exportVehicleTrackingReport(pathToFile, data);
+            parser.exportVehicleTrackingReport(pathToFile, data);
         }
 
         /// <summary>
@@ -225,7 +225,7 @@ namespace TollTracker.model
         public void exportVehicleTollReportToXML(string pathToFile, ListView.ListViewItemCollection data)
         {
             XMLParser parser = new XMLParser();
-            //parser.exportVehicleTollReport(pathToFile, data);
+            parser.exportVehicleTollReport(pathToFile, data);
         }
 
         /// <summary>
@@ -236,7 +236,7 @@ namespace TollTracker.model
         public void exportTollsSummaryReportToXML(string pathToFile, ListView.ListViewItemCollection data)
         {
             XMLParser parser = new XMLParser();
-            //parser.exportTollsSummaryReport(pathToFile, data);
+            parser.exportTollsSummaryReport(pathToFile, data);
         }
 
         /// <summary>
@@ -247,7 +247,7 @@ namespace TollTracker.model
         public void exportGateReportToXML(string pathToFile, ListView.ListViewItemCollection data)
         {
             XMLParser parser = new XMLParser();
-            //parser.exportGateReport(pathToFile, data);
+            parser.exportGateReport(pathToFile, data);
         }
 
         /****************************************************************PRIVATE*******************************************************/
