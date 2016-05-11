@@ -6,6 +6,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Windows.Forms;
 using System.Xml;
 
 namespace TollTracker.model
@@ -76,7 +77,105 @@ namespace TollTracker.model
             return false;
         }
 
+        /// <summary>
+        /// Exportuje výsledky vehicleTrackingReportu do XML
+        /// </summary>
+        /// <param name="pathToFile">cesta k souboru</param>
+        /// <param name="data">data určená k exportu</param>
+        public void exportVehicleTrackingReport(string pathToFile, ListView.ListViewItemCollection data)
+        {
+            XmlTextWriter writer = new XmlTextWriter(pathToFile, System.Text.Encoding.UTF8);
+            writer.WriteStartDocument(true);
+            writer.Formatting = Formatting.Indented;
+            writer.Indentation = 2;
 
+            writer.WriteStartElement("VehicleTrackingReport");
+            for (int i = 0; i < data.Count; i++)
+            {
+                writer.WriteStartElement("TrackingPoint");
+                writer.WriteElementString("Time", data[i].SubItems[1].Text);
+                writer.WriteElementString("GpsGateId", data[i].SubItems[2].Text);
+                writer.WriteElementString("TollGateId", data[i].SubItems[3].Text);
+                writer.WriteElementString("Price", data[i].SubItems[4].Text);
+                writer.WriteEndElement();
+            }
+            writer.WriteEndElement();
+            writer.WriteEndDocument();
+            writer.Close();
+        }
+
+        /// <summary>
+        /// Exportuje výsledky vehicleTollReportu do XML
+        /// </summary>
+        /// <param name="pathToFile">cesta k souboru</param>
+        /// <param name="data">data určená k exportu</param>
+        public void exportVehicleTollReport(string pathToFile, ListView.ListViewItemCollection data)
+        {
+            XmlTextWriter writer = new XmlTextWriter(pathToFile, System.Text.Encoding.UTF8);
+            writer.WriteStartDocument(true);
+            writer.Formatting = Formatting.Indented;
+            writer.Indentation = 2;
+            writer.WriteStartElement("VehicleTollReport");
+            for (int i = 0; i < data.Count; i++)
+            {
+                writer.WriteStartElement("TollClass");
+                writer.WriteElementString("RoadType", data[i].SubItems[1].Text);
+                writer.WriteElementString("Price", data[i].SubItems[2].Text);
+                writer.WriteEndElement();
+            }
+            writer.WriteEndElement();
+            writer.WriteEndDocument();
+            writer.Close();
+        }
+
+        /// <summary>
+        /// Exportuje výsledky tollsSummaryReportu do XML
+        /// </summary>
+        /// <param name="pathToFile">cesta k souboru</param>
+        /// <param name="data">data určená k exportu</param>
+        public void exportTollsSummaryReport(string pathToFile, ListView.ListViewItemCollection data)
+        {
+            XmlTextWriter writer = new XmlTextWriter(pathToFile, System.Text.Encoding.UTF8);
+            writer.WriteStartDocument(true);
+            writer.Formatting = Formatting.Indented;
+            writer.Indentation = 2;
+            writer.WriteStartElement("TollSummaryReport");
+            for (int i = 0; i < data.Count; i++)
+            {
+                writer.WriteStartElement("Toll");
+                writer.WriteElementString("VehicleType", data[i].SubItems[1].Text);
+                writer.WriteElementString("Price", data[i].SubItems[2].Text);
+                writer.WriteEndElement();
+            }
+            writer.WriteEndElement();
+            writer.WriteEndDocument();
+            writer.Close();
+        }
+
+        /// <summary>
+        /// Exportuje výsledky gateReportu do XML
+        /// </summary>
+        /// <param name="pathToFile">cesta k souboru</param>
+        /// <param name="data">data určená k exportu</param>
+        public void exportGateReport(string pathToFile, ListView.ListViewItemCollection data)
+        {
+            XmlTextWriter writer = new XmlTextWriter(pathToFile, System.Text.Encoding.UTF8);
+            writer.WriteStartDocument(true);
+            writer.Formatting = Formatting.Indented;
+            writer.Indentation = 2;
+            writer.WriteStartElement("GateReport");
+            for (int i = 0; i < data.Count; i++)
+            {
+                writer.WriteStartElement("Vehicle");
+                writer.WriteElementString("SPZ", data[i].SubItems[1].Text);
+                writer.WriteElementString("VehicleType", data[i].SubItems[2].Text);
+                writer.WriteElementString("Time", data[i].SubItems[3].Text);
+                writer.WriteEndElement();
+            }
+            writer.WriteEndElement();
+            writer.WriteEndDocument();
+            writer.Close();
+        }
 
         /*************************************************************** private *****************************************************************/
 
