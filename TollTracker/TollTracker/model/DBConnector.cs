@@ -10,7 +10,7 @@ using Npgsql;
 namespace TollTracker.model
 {
     /// <summary>
-    /// Abstarktní třída pro modely, která zajišťuje hlavní práci s DB
+    /// Abstarktní třída pro modely, která zajišťuje hlavní práci s DB 
     /// </summary>
     public abstract class DBConnector
     {
