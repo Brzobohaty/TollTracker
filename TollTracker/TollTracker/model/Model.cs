@@ -109,9 +109,9 @@ namespace TollTracker.model
             builder.Append("JOIN car ON toll.car_spz = car.spz ");
             if (Int32.TryParse(gateId, out outvalue))
             {
-                builder.Append("WHERE((toll.toll_gate_id IS NOT NULL) AND (toll.toll_gate_id = '");
+                builder.Append("WHERE((toll.gps_gate_id IS NOT NULL) AND (toll.gps_gate_id = '");
                 builder.Append(gateId);
-                builder.Append("')) OR((toll.gps_gate_id IS NOT NULL) AND (toll.gps_gate_id = '");
+                builder.Append("'))");
             }
             else
             {
